@@ -1,0 +1,28 @@
+{
+  "log": {
+    "maxsize": 10,
+    "maxbackups": 10
+  },
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "user",
+    "password": "password",
+    "name": "ambpi"
+  },
+  "chatbot": {
+    "host": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io/bot/webhook",
+    "host_push": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io",
+    "phone_id":"6282122912548",
+    "account_id": "12345",
+    "division_id": "12345",
+    "waba_account_number":"6282311333723",
+    "access_token":"123456"
+  },
+  "queue":{
+    "host" : "localhost",
+    "port" : 27017,
+    "name" : "ambpi",
+    "expired" : 100
+  }
+}
