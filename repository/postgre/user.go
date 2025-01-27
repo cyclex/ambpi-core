@@ -8,16 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (self *postgreRepo) FindUserBy(cond map[string]interface{}) (data []model.UserCMS, err error) {
-
-	err = self.DB.Where(cond).Find(&data).Error
-	if err != nil {
-		err = errors.Wrap(err, "[postgre.FindUserBy]")
-	}
-
-	return
-}
-
 func (self *postgreRepo) SetUser(id int64, kol model.UserCMS) (err error) {
 
 	kol.UpdatedAt = time.Now().Local().Unix()
@@ -46,6 +36,7 @@ func (self *postgreRepo) CreateUser(new model.UserCMS) (err error) {
 
 	new.CreatedAt = time.Now().Local().Unix()
 	new.Password = pkg.HashPassword(new.Password)
+	new.Flag = true
 	err = self.DB.Create(&new).Error
 	if err != nil {
 		err = errors.Wrap(err, "[postgre.CreateUser]")

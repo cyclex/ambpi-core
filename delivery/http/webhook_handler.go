@@ -9,6 +9,7 @@ import (
 	"github.com/cyclex/ambpi-core/pkg"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -52,12 +53,14 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 
 	err = c.Bind(&request)
 	if err != nil {
+		err = errors.Wrap(err, "[webhooksWhatsapp] Bind")
 		appLog.Error(err)
 	}
 
 	code = 200
 	_, err = self.Ch.IncomingMessages(request.Entry[0].Changes[0].Value.Messages[0])
 	if err != nil {
+		err = errors.Wrap(err, "[webhooksWhatsapp] IncomingMessages")
 		appLog.Error(err)
 	}
 

@@ -23,7 +23,7 @@ func run_server(server, config string, debug bool) (err error) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println("[run_server] panic occurred")
+			fmt.Printf("[run_server] panic occurred: %v", err)
 		}
 	}()
 
@@ -105,9 +105,10 @@ func run_server(server, config string, debug bool) (err error) {
 	urlSendMsg := cfg.Chatbot.Host
 	urlPush := cfg.Chatbot.HostPush
 	accessToken := cfg.Chatbot.AccessToken
+	downloadFolder := cfg.DownloadFolder
 	model := postgre.NewPostgreRepository(c, conn)
 	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, ordersQueue, rdb)
-	cmsUcase := usecase.NewCmsUcase(model, timeoutCtx, chatUcase, ordersQueue)
+	cmsUcase := usecase.NewCmsUcase(model, timeoutCtx, chatUcase, ordersQueue, downloadFolder)
 	orderUcase := usecase.NewOrdersUcase(ordersQueue, timeoutCtx)
 
 	InitCron(orderUcase, chatUcase, cmsUcase, timeoutCtx, debug)

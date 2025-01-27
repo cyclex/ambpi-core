@@ -16,7 +16,7 @@ type ChatUcase interface {
 	DoRedeem(usUcode model.UsersUniqueCode) (chat string, err error)
 	CreateQueueReply(data api.PayloadReply) (err error)
 	CreateConversationsLog(data model.ConversationsLog) (err error)
-	RefreshToken(token string) (res api.RefreshResponse, statusCode int, err error)
+	RefreshToken() (res api.RefreshResponse, statusCode int, err error)
 	SetToken(ctx context.Context, token string, ttl time.Duration) (err error)
 	GetToken(ctx context.Context) (token string, err error)
 }

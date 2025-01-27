@@ -33,12 +33,12 @@ type ModelRepository interface {
 	ReportRedeem(req api.Report) (data map[string]interface{}, err error)
 	ReportUsage(req api.Report) (data map[string]interface{}, err error)
 	ReportAvailability() (data map[string]interface{}, err error)
+	ReportUsers() (data map[string]interface{}, err error)
 
 	FindProgram() (data []map[string]interface{}, err error)
 	SetProgram(cond, updated map[string]interface{}) (affected int64, err error)
 	IsProgramActive(retail string) (status int)
 
-	FindUserBy(cond map[string]interface{}) (data []model.UserCMS, err error)
 	SetUser(id int64, kol model.UserCMS) (err error)
 	RemoveUser(id []int64) (err error)
 	CreateUser(new model.UserCMS) (err error)

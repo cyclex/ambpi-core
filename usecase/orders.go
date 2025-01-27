@@ -9,6 +9,7 @@ import (
 	"github.com/cyclex/ambpi-core/domain/model"
 	"github.com/cyclex/ambpi-core/domain/repository"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -36,7 +37,12 @@ func (self *ordersUcase) CreateQueueRedeem(c context.Context, msg api.PayloadRed
 		Messages: msg,
 	}
 
-	return self.q.CreateQueueRedeem(data)
+	err = self.q.CreateQueueRedeem(data)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.CreateQueueRedeem] CreateQueueRedeem")
+	}
+
+	return
 
 }
 
@@ -45,7 +51,12 @@ func (self *ordersUcase) GetQueueRedeem(c context.Context) (data []model.QueueRe
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.GetQueueRedeem()
+	data, err = self.q.GetQueueRedeem()
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.GetQueueRedeem] GetQueueRedeem")
+	}
+
+	return
 
 }
 
@@ -54,8 +65,12 @@ func (self *ordersUcase) UpdateQueueRedeem(c context.Context, id primitive.Objec
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.UpdateQueueRedeem(id)
+	err = self.q.UpdateQueueRedeem(id)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.UpdateQueueRedeem] UpdateQueueRedeem")
+	}
 
+	return
 }
 
 func (self *ordersUcase) GetQueueReply(c context.Context) (data []model.QueueReply, err error) {
@@ -63,7 +78,12 @@ func (self *ordersUcase) GetQueueReply(c context.Context) (data []model.QueueRep
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.GetQueueReply()
+	data, err = self.q.GetQueueReply()
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.GetQueueReply] GetQueueReply")
+	}
+
+	return
 
 }
 
@@ -78,7 +98,12 @@ func (self *ordersUcase) CreateQueueReply(c context.Context, msg api.PayloadRepl
 		Messages: msg,
 	}
 
-	return self.q.CreateQueueReply(data)
+	err = self.q.CreateQueueReply(data)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.CreateQueueReply] CreateQueueReply")
+	}
+
+	return
 
 }
 
@@ -87,7 +112,12 @@ func (self *ordersUcase) UpdateQueueReply(c context.Context, id primitive.Object
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.UpdateQueueReply(id)
+	err = self.q.UpdateQueueReply(id)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.UpdateQueueReply] UpdateQueueReply")
+	}
+
+	return
 
 }
 
@@ -96,7 +126,12 @@ func (self *ordersUcase) GetJob(c context.Context, category string) (data []mode
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.GetJob(category)
+	data, err = self.q.GetJob(category)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.GetJob] GetJob")
+	}
+
+	return
 }
 
 func (self *ordersUcase) UpdateJob(c context.Context, data api.Job) (err error) {
@@ -104,6 +139,11 @@ func (self *ordersUcase) UpdateJob(c context.Context, data api.Job) (err error) 
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.q.UpdateJob(model.QueueJob{ID: data.ID, JobStatus: data.JobStatus, TotalRows: data.TotalRows, File: data.File})
+	err = self.q.UpdateJob(model.QueueJob{ID: data.ID, JobStatus: data.JobStatus, TotalRows: data.TotalRows, File: data.File})
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.UpdateJob] UpdateJob")
+	}
+
+	return
 
 }

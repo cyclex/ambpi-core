@@ -23,13 +23,15 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 
 	queue, err := orderUcase.GetQueueRedeem(ctx)
 	if err != nil {
+		err = errors.Wrap(err, "[cron.Redeem] GetQueueRedeem")
+		winLog.Error(err)
 		return
 	}
 
 	for _, row := range queue {
 		err = orderUcase.UpdateQueueRedeem(ctx, row.ID)
 		if err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("[Redeem]usecase - fail UpdateQueue. id:%v", row.ID))
+			err = errors.Wrap(err, fmt.Sprintf("[cron.Redeem] UpdateQueueRedeem. id:%v", row.ID))
 			winLog.Error(err)
 			return
 		}
@@ -47,7 +49,7 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 
 		chat, err := chatUcase.DoRedeem(uCode)
 		if err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("[Redeem]usecase - fail DoRedeem. data:%+v", uCode))
+			err = errors.Wrap(err, fmt.Sprintf("[cron.Redeem] DoRedeem. data:%+v", uCode))
 			winLog.Error(err)
 			return
 		}
@@ -60,7 +62,7 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 		}
 		err = chatUcase.CreateQueueReply(msg)
 		if err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("[Redeem]usecase - fail CreateQueueReply. data:%+v", msg))
+			err = errors.Wrap(err, fmt.Sprintf("[cron.Redeem] CreateQueueReply. data:%+v", msg))
 			winLog.Error(err)
 		}
 
@@ -68,7 +70,6 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 
 	*processing = false
 
-	return
 }
 
 func DoSendReply(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.OrdersUcase, ctx context.Context) {
@@ -79,12 +80,15 @@ func DoSendReply(processing *bool, chatUcase domain.ChatUcase, orderUcase domain
 	defer func() {
 		*processing = false
 		if err != nil {
-			fmt.Println(err)
+			err = errors.Wrap(err, "[cron.DoSendReply]")
+			winLog.Error(err)
 		}
 	}()
 
 	queue, err := orderUcase.GetQueueReply(ctx)
 	if err != nil {
+		err = errors.Wrap(err, "[cron.DoSendReply] GetQueueReply")
+		winLog.Error(err)
 		return
 	}
 
@@ -92,10 +96,14 @@ func DoSendReply(processing *bool, chatUcase domain.ChatUcase, orderUcase domain
 
 		_, statusCode, err := chatUcase.ChatToUserCoster(row.Messages.WaID, row.Messages.Chat, "text", "")
 		if err != nil {
+			err = errors.Wrap(err, "[cron.DoSendReply] ChatToUserCoster")
+			winLog.Error(err)
 			return
 		}
 
 		if statusCode != http.StatusOK {
+			err = errors.Wrapf(err, "[cron.DoSendReply] ChatToUserCoster. statusCode: %d", statusCode)
+			winLog.Error(err)
 			return
 		}
 
@@ -107,19 +115,21 @@ func DoSendReply(processing *bool, chatUcase domain.ChatUcase, orderUcase domain
 		}
 		err = chatUcase.CreateConversationsLog(clog)
 		if err != nil {
+			err = errors.Wrap(err, "[cron.DoSendReply] CreateConversationsLog")
+			winLog.Error(err)
 			return
 		}
 
 		err = orderUcase.UpdateQueueReply(ctx, row.ID)
 		if err != nil {
+			err = errors.Wrap(err, "[cron.DoSendReply] UpdateQueueReply")
+			winLog.Error(err)
 			return
 		}
 
 	}
 
 	*processing = false
-
-	return
 
 }
 
@@ -131,33 +141,37 @@ func RefreshToken(processing *bool, chatUcase domain.ChatUcase) {
 		*processing = false
 	}()
 
-	token, statusCode, err := chatUcase.RefreshToken("a29waWFiY21hbnRhcDpBQkNrb3BpNDhe")
+	token, statusCode, err := chatUcase.RefreshToken()
 	if err != nil {
-		err = errors.Wrap(err, "[RefreshToken]usecase - fail RefreshToken.")
+		err = errors.Wrap(err, "[cron.RefreshToken] RefreshToken")
+		winLog.Error(err)
 		return
 	}
 
 	if statusCode != http.StatusOK {
-		err = errors.New(fmt.Sprintf("[RefreshToken]usecase - fail RefreshToken. statusCode:%d", statusCode))
+		err = errors.New(fmt.Sprintf("statusCode:%d", statusCode))
+		err = errors.Wrap(err, "[cron.RefreshToken] RefreshToken")
+		winLog.Error(err)
 		return
 	}
 
 	if token.Token != "" {
 		expiresAt, err := time.Parse("2006-01-02 15:04:05", token.ExpiresAfter)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("[RefreshToken]usecase - fail parsing expires_after:%v", token.ExpiresAfter))
+			err = errors.New(fmt.Sprintf("[cron.RefreshToken] fail parsing expires_after:%v", token.ExpiresAfter))
+			winLog.Error(err)
 			return
 		}
 
 		ttl := time.Until(expiresAt)
 		err = chatUcase.SetToken(context.Background(), token.Token, ttl)
 		if err != nil {
-			err = errors.Wrap(err, "[RefreshToken]usecase - fail SetToken.")
+			err = errors.Wrap(err, "[cron.RefreshToken] SetToken")
+			winLog.Error(err)
 			return
 		}
 	}
 
 	*processing = false
 
-	return
 }

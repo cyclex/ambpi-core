@@ -89,16 +89,19 @@ OPTIONS:
     "host": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io/bot/webhook",
     "host_push": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io",
     "phone_id":"6282122912548",
-    "account_id": "qwe213",
-    "division_id": "qwe456",
+    "account_id": "xxx",
+    "division_id": "xxx",
     "waba_account_number":"6282311333723",
-    "access_token":"asdfgqwert123"
+    "access_token":"xxx",
+    "access_token_push":"12345"
   },
   "queue":{
     "host" : "localhost",
     "port" : 27017,
     "name" : "ambpi",
-    "expired" : 168 //24*7 week
-  }
+    "expired" : 168 // hours in a week
+  },
+  "download_folder":"/Users/ansharharyadi/Desktop"
 }
+
 ```

@@ -25,32 +25,35 @@ import (
 )
 
 type chatUcase struct {
-	m              repository.ModelRepository
-	q              repository.QueueRepository
-	urlSendMsg     string
-	PhoneID        string
-	AccessToken    string
-	NumZonk        int
-	NumLimitRedeem int
-	Rdb            *redis.Client
-	UrlPush        string
+	m               repository.ModelRepository
+	q               repository.QueueRepository
+	urlSendMsg      string
+	PhoneID         string
+	AccessToken     string
+	NumZonk         int
+	NumLimitRedeem  int
+	Rdb             *redis.Client
+	UrlPush         string
+	AccountID       string
+	DivisionID      string
+	AccessTokenPush string
 }
 
 var (
-	berkesempatan     = "Selamat. kamu berkesempatan mendapatkan hadiah langsung %s dan Nomor Undian.\n\nData kamu akan kami validasi terlebih dahulu dalam 1x24 jam. Untuk memastikan kamu mendapatkan hadiah langsung %s dan nomor undian\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	zonk              = "Mohon maaf, kamu belum beruntung mendapatkan hadiah langsung. Namun kamu berkesempatan mendapatkan Nomor Undian yang akan diundi di akhir periode\n\nData kamu akan kami validasi terlebih dahulu dalam 1x24 jam. Untuk memastikan kamu mendapatkan nomor undian\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	programNotActive  = "Mohon Maaf Program Consumer AM 2025 belum dimulai.\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	programEnded      = "Mohon Maaf Program Consumer AM 2025 sudah berakhir.\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	invalidFormat     = "Maaf format pesan yang anda kirimkan tidak lengkap silahkan kirim foto struk pembelian dan caption\n**AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	invalidPhoto      = "Maaf format foto yang kamu kirimkan salah, kirimkan hanya format image jpeg/jpg\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	invalidCaption    = "Maaf format caption foto yang kamu kirimkan salah. Format caption : **AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
-	invalidNIK        = "Maaf NIK yang kamu kirimkan salah. Mohon kirim NIK yang sesuai.\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	berkesempatan     = "Selamat. kamu berkesempatan mendapatkan hadiah langsung %s dan Nomor Undian.\n\nData kamu akan kami validasi terlebih dahulu dalam 1x24 jam. Untuk memastikan kamu mendapatkan hadiah langsung %s dan nomor undian\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	zonk              = "Mohon maaf, kamu belum beruntung mendapatkan hadiah langsung. Namun kamu berkesempatan mendapatkan Nomor Undian yang akan diundi di akhir periode\n\nData kamu akan kami validasi terlebih dahulu dalam 1x24 jam. Untuk memastikan kamu mendapatkan nomor undian\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	programNotActive  = "Mohon Maaf Program Consumer AM 2025 belum dimulai.\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	programEnded      = "Mohon Maaf Program Consumer AM 2025 sudah berakhir.\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	invalidFormat     = "Maaf format pesan yang anda kirimkan tidak lengkap silahkan kirim foto struk pembelian dan caption\n**AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	invalidPhoto      = "Maaf format foto yang kamu kirimkan salah, kirimkan hanya format image jpeg/jpg\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	invalidCaption    = "Maaf format caption foto yang kamu kirimkan salah. Format caption : **AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	invalidNIK        = "Maaf NIK yang kamu kirimkan salah. Mohon kirim NIK yang sesuai.\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
 	invalidProfession = "Maaf profesi yang kamu masukan salah. Masukan profesi yang sesuai **(tukang/mandor/end konsumen)**"
-	invalid           = "Untuk mengikuti program ini silahkan mengirimkan foto struk pembelian disertai caption **AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/628xxxxx\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	invalid           = "Untuk mengikuti program ini silahkan mengirimkan foto struk pembelian disertai caption **AM#NamaLengkap#NIK#Kota#Profesi (tukang/mandor/end konsumen)**\n\nInfo lebih lanjut: klik wa.me/6281225772215\nCS Office Hour (Senin s/d Jumat 08.00 - 17.30 WIB)\n\nHati-hati penipuan! Consumer Promo AM tidak dipungut biaya apapun!"
+	maintenance       = "Mohon maaf, system Consumer promo sedang maintenance. Kamu dapat mengirimkan kembali struk pembelian beserta captionnya dalam 1x24 Jam kedepan\n\ninformasi lebih lanjut, hubungi CS :\nwa.me/6281225772215"
 
 	// TODO replace system error to invalid
 	systemError = "System error"
-	prizeHunter = "Mohon maaf, kamu belum beruntung. Terus coba lagi di kesempatan lainnya ya."
 )
 
 func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, accessToken string, queueRepo repository.QueueRepository, rdb *redis.Client) domain.ChatUcase {
@@ -78,7 +81,7 @@ func (self *chatUcase) IncomingMessages(payload api.CproMessage) (trxChatBotID s
 
 	res, statusCode, err := self.ChatToUserCoster(waID, outgoing, "text", "")
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.IncomingMessages]")
+		err = errors.Wrap(err, "[usecase.IncomingMessages] ChatToUserCoster")
 		return
 	}
 
@@ -96,7 +99,7 @@ func (self *chatUcase) IncomingMessages(payload api.CproMessage) (trxChatBotID s
 	}
 	err = self.m.CreateConversationsLog(clog)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.IncomingMessages]")
+		err = errors.Wrap(err, "[usecase.IncomingMessages] CreateConversationsLog")
 	}
 
 	return
@@ -138,7 +141,6 @@ func (self *chatUcase) ReplyMessages(waID string, payload api.CproMessage) (isRe
 
 	// AM#NamaLengkap#NIK#Kota#Profesi
 	str := strings.Split(incoming, "#")
-	fmt.Println(len(str))
 	if len(str) != 5 || str[0] != "am" {
 		return false, invalidCaption, nil
 	}
@@ -176,6 +178,7 @@ func (self *chatUcase) ReplyMessages(waID string, payload api.CproMessage) (isRe
 	})
 
 	if err != nil {
+		err = errors.Wrap(err, "[usecase.ReplyMessages] CreateQueueRedeem")
 		return false, invalid, err
 	}
 
@@ -194,14 +197,15 @@ func (self *chatUcase) DoRedeem(usUcode model.UsersUniqueCode) (outgoing string,
 	p, err := self.m.FindActivePrizes(cond, true)
 	if err != nil {
 		if err.Error() != "record not found" {
-			err = errors.Wrap(err, fmt.Sprintf("[DoRedeem]usecase - fail FindActivePrizes. cond:%+v, isActive:%v (waID:%s, reply:%s)", cond, true, usUcode.WaID, reply))
+			err = errors.Wrap(err, fmt.Sprintf("[usecase.DoRedeem] FindActivePrizes. cond:%+v, isActive:%v (waID:%s, reply:%s)", cond, true, usUcode.WaID, reply))
 			return systemError, err
 		}
-		return prizeHunter, nil
+		return maintenance, nil
 	}
 
 	outgoing, err = self.setAndCreate(p, usUcode)
 	if err != nil {
+		err = errors.Wrap(err, "[usecase.DoRedeem] setAndCreate")
 		return systemError, err
 	}
 
@@ -226,7 +230,7 @@ func (self *chatUcase) setAndCreate(p model.Prizes, u model.UsersUniqueCode) (ou
 
 	_, err = self.m.SetPrizes(cond, updated)
 	if err != nil {
-		err = errors.Wrap(err, fmt.Sprintf("[DoRedeem]usecase - fail SetPrizes. cond:%+v, (waID:%s, outgoing:%s)", cond, u.WaID, systemError))
+		err = errors.Wrap(err, fmt.Sprintf("[usecase.setAndCreate] SetPrizes. cond:%+v, (waID:%s, outgoing:%s)", cond, u.WaID, systemError))
 		return systemError, err
 	}
 
@@ -239,7 +243,7 @@ func (self *chatUcase) setAndCreate(p model.Prizes, u model.UsersUniqueCode) (ou
 	u.CreatedAt = time.Now().Local()
 	_, err, pk := self.m.CreateUsersUniqueCodes(u)
 	if err != nil {
-		err = errors.Wrap(err, fmt.Sprintf("[DoRedeem]usecase - fail CreateUsersUniqueCodes. (waID:%s, outgoing:%s)", u.WaID, systemError))
+		err = errors.Wrap(err, fmt.Sprintf("[usecase.setAndCreate] CreateUsersUniqueCodes. (waID:%s, outgoing:%s)", u.WaID, systemError))
 		return systemError, err
 	}
 
@@ -249,7 +253,7 @@ func (self *chatUcase) setAndCreate(p model.Prizes, u model.UsersUniqueCode) (ou
 		Msisdn:            u.WaID,
 	})
 	if err != nil {
-		err = errors.Wrap(err, fmt.Sprintf("[DoRedeem]usecase - fail CreateRedeemPrizes. (waID:%s, outgoing:%s)", u.WaID, systemError))
+		err = errors.Wrap(err, fmt.Sprintf("[usecase.setAndCreate] CreateRedeemPrizes. (waID:%s, outgoing:%s)", u.WaID, systemError))
 		return systemError, err
 	}
 
@@ -262,10 +266,10 @@ func (self *chatUcase) ChatToUserCoster(waID, chat, types, media string) (res []
 	url := self.urlSendMsg
 
 	payload = api.ReqSendMessageText{
-		XID:       uuid.NewString(),
-		ChannelID: "whatsapp-cloud",
-		// AccountID:   self.AccountID,
-		// DivisionID:  self.DivisionID,
+		XID:         uuid.NewString(),
+		ChannelID:   "whatsapp-cloud",
+		AccountID:   self.AccountID,
+		DivisionID:  self.DivisionID,
 		IsHelpdesk:  false,
 		MessageType: "outbound",
 		Data: api.Data{
@@ -281,7 +285,7 @@ func (self *chatUcase) ChatToUserCoster(waID, chat, types, media string) (res []
 
 	res, statusCode, err = httprequest.PostJson(url, payload, 15*time.Second, self.AccessToken)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.ChatToUser]")
+		err = errors.Wrap(err, "[usecase.ChatToUserCoster] PostJson")
 	}
 	return
 }
@@ -324,22 +328,22 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 		}
 		payloadBytes, err = json.Marshal(payload)
 		if err != nil {
-			return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser]")
+			return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] Marshal")
 		}
 
 	default:
-		return nil, 0, fmt.Errorf("unsupported type: %s", types)
+		return nil, 0, fmt.Errorf("[usecase.ChatToUser] unsupported type: %s", types)
 	}
 
 	accessToken, err := self.getAccessToken(context.Background())
 	if err != nil {
-		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser]")
+		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] getAccessToken")
 	}
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser]")
+		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] NewRequest")
 	}
 
 	req.Header.Add("Authorization", AuthBearer+accessToken)
@@ -347,13 +351,13 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser]")
+		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] Do")
 	}
 	defer resp.Body.Close()
 
 	res, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser]")
+		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] ReadAll")
 	}
 
 	return res, resp.StatusCode, nil
@@ -362,9 +366,9 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 func (self *chatUcase) getAccessToken(ctx context.Context) (string, error) {
 	token, err := self.GetToken(ctx)
 	if err != nil {
-		res, _, refreshErr := self.RefreshToken("a29waWFiY21hbnRhcDpBQkNrb3BpNDhe")
+		res, _, refreshErr := self.RefreshToken()
 		if refreshErr != nil {
-			return "", errors.Wrap(refreshErr, "failed to refresh token")
+			return "", errors.Wrap(refreshErr, "[usecase.getAccessToken] RefreshToken")
 		}
 		return res.Token, nil
 	}
@@ -380,17 +384,25 @@ func (self *chatUcase) CreateQueueReply(data api.PayloadReply) (err error) {
 		Messages: data,
 	}
 
-	return self.q.CreateQueueReply(payload)
+	err = self.q.CreateQueueReply(payload)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.CreateQueueReply] CreateQueueReply")
+	}
+
+	return
 }
 
 func (self *chatUcase) CreateConversationsLog(data model.ConversationsLog) (err error) {
 
 	err = self.m.CreateConversationsLog(data)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.CreateConversationsLog] CreateConversationsLog")
+	}
 
 	return
 }
 
-func (self *chatUcase) RefreshToken(token string) (apiResp api.RefreshResponse, statusCode int, err error) {
+func (self *chatUcase) RefreshToken() (apiResp api.RefreshResponse, statusCode int, err error) {
 
 	url := "https://graph.jatismobile.com/login"
 
@@ -399,15 +411,15 @@ func (self *chatUcase) RefreshToken(token string) (apiResp api.RefreshResponse, 
 	}
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.RefreshToken]")
+		err = errors.Wrap(err, "[usecase.RefreshToken] NewRequest")
 		return
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", token))
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", self.AccessTokenPush))
 
 	resp, err := client.Do(req)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.RefreshToken]")
+		err = errors.Wrap(err, "[usecase.RefreshToken] Do")
 		return
 	}
 
@@ -416,12 +428,12 @@ func (self *chatUcase) RefreshToken(token string) (apiResp api.RefreshResponse, 
 
 	res, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.RefreshToken]")
+		err = errors.Wrap(err, "[usecase.RefreshToken] ReadAll")
 		return
 	}
 
 	if err = json.Unmarshal(res, &apiResp); err != nil {
-		err = errors.Wrap(err, "[usecase.RefreshToken]")
+		err = errors.Wrap(err, "[usecase.RefreshToken] Unmarshal")
 		return
 	}
 
@@ -432,8 +444,7 @@ func (self *chatUcase) SetToken(ctx context.Context, token string, ttl time.Dura
 
 	self.Rdb.Set(ctx, "token", token, ttl).Err()
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.SetToken]")
-		fmt.Println(err.Error())
+		err = errors.Wrap(err, "[usecase.SetToken] Set")
 	}
 
 	return
@@ -443,8 +454,7 @@ func (self *chatUcase) GetToken(ctx context.Context) (token string, err error) {
 
 	token, err = self.Rdb.Get(ctx, "token").Result()
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.GetToken]")
-		fmt.Println(err.Error())
+		err = errors.Wrap(err, "[usecase.GetToken] Get")
 	}
 
 	return

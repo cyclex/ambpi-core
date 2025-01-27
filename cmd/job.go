@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cyclex/ambpi-core/api"
 	"github.com/cyclex/ambpi-core/domain"
+	"github.com/pkg/errors"
 )
 
 func ProcessJobUpload(processing *bool, orderUcase domain.OrdersUcase, cmsUcase domain.CmsUcase, ctx context.Context, debug bool) {
@@ -25,7 +25,8 @@ func ProcessJobUpload(processing *bool, orderUcase domain.OrdersUcase, cmsUcase 
 
 	queue, err := orderUcase.GetJob(ctx, "")
 	if err != nil {
-		fmt.Println(err.Error())
+		err = errors.Wrap(err, "[cron.ProcessJobUpload] GetJob")
+		winLog.Error(err)
 		return
 	}
 
@@ -40,7 +41,8 @@ func ProcessJobUpload(processing *bool, orderUcase domain.OrdersUcase, cmsUcase 
 			}
 
 			if err != nil {
-				fmt.Println(err.Error())
+				err = errors.Wrap(err, "[cron.ProcessJobUpload]")
+				winLog.Error(err)
 			}
 
 			if status {
@@ -49,7 +51,8 @@ func ProcessJobUpload(processing *bool, orderUcase domain.OrdersUcase, cmsUcase 
 
 			err = orderUcase.UpdateJob(ctx, api.Job{ID: row.ID, TotalRows: totalRows, JobStatus: jobStatus, File: files})
 			if err != nil {
-				fmt.Println(err.Error())
+				err = errors.Wrap(err, "[cron.ProcessJobUpload] UpdateJob")
+				winLog.Error(err)
 			}
 		}
 	}

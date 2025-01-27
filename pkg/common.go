@@ -147,29 +147,12 @@ func HashPassword(password string) string {
 }
 
 func PrizeData(prize string) (prizeType string) {
-	// Map to define prize categories
-	prizes := map[string]string{
-		"belum beruntung":  "reguler",
-		"pulsa 25000":      "reguler",
-		"pulsa 50000":      "reguler",
-		"pulsa 100000":     "reguler",
-		"jaket":            "reguler",
-		"helm":             "reguler",
-		"handphone":        "grand",
-		"smart tv 40 inch": "grand",
-		"sepeda motor":     "grand",
+
+	if prize != "abb" {
+		return "reguler"
 	}
 
-	// Normalize the input
-	prize = strings.ToLower(prize)
-
-	// Check the map for the prize type
-	if val, ok := prizes[prize]; ok {
-		return val
-	}
-
-	// Return a default value for unknown prizes
-	return "unknown"
+	return "zonk"
 }
 
 func WrapError(err error, msg string) error {
@@ -179,35 +162,37 @@ func WrapError(err error, msg string) error {
 	return nil
 }
 
-func WriteXLS(data []map[string]interface{}) (path string, rows int, err error) {
+func WriteXLS(data []map[string]interface{}, destinationFolder string) (path string, rows int, err error) {
+
 	f := excelize.NewFile()
 	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
+		if closeErr := f.Close(); closeErr != nil {
+			err = errors.Wrap(closeErr, "[WriteXLS] error closing file")
 		}
 	}()
 
-	// Create a new sheet.
+	// Create a new sheet
 	sheetName := "Sheet1"
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
-		err = errors.Wrap(err, "[WriteXLS] error create sheet")
+		err = errors.Wrap(err, "[WriteXLS] error creating sheet")
 		return
 	}
 
 	if len(data) > 0 {
+		// Extract headers from the first row
 		headers := []string{}
 		for key := range data[0] {
-			if key == "rNum" {
+			if key == "rNum" || key == "redeem_id" || key == "id" {
 				continue
 			}
-			headers = append(headers, strings.ToUpper(key))
+			headers = append(headers, key)
 		}
 
 		// Write headers to the first row
 		for col, header := range headers {
 			cell, _ := excelize.CoordinatesToCellName(col+1, 1)
-			if err = f.SetCellValue(sheetName, cell, header); err != nil {
+			if err = f.SetCellValue(sheetName, cell, strings.ToUpper(header)); err != nil {
 				err = errors.Wrap(err, "[WriteXLS] error writing headers")
 				return
 			}
@@ -217,22 +202,28 @@ func WriteXLS(data []map[string]interface{}) (path string, rows int, err error) 
 		for rowIndex, row := range data {
 			for colIndex, header := range headers {
 				cell, _ := excelize.CoordinatesToCellName(colIndex+1, rowIndex+2)
-				if err = f.SetCellValue(sheetName, cell, row[header]); err != nil {
-					err = errors.Wrap(err, "[WriteXLS] error writing data")
-					return
+				if value, ok := row[header]; ok {
+					if err = f.SetCellValue(sheetName, cell, value); err != nil {
+						err = errors.Wrap(err, "[WriteXLS] error writing data")
+						return
+					}
 				}
 			}
 		}
 
-		rows = len(data) - 1
+		rows = len(data)
 	}
 
-	// Set active sheet of the workbook.
+	// Set active sheet
 	f.SetActiveSheet(index)
-	// Save spreadsheet by the given path.
-	path = fmt.Sprintf("%s/%d.xlsx", "download", time.Now().Unix())
+
+	// Save spreadsheet to the given path
+	if destinationFolder == "" {
+		destinationFolder = "download"
+	}
+	path = fmt.Sprintf("%s/%d.xlsx", destinationFolder, time.Now().Unix())
 	if err = f.SaveAs(path); err != nil {
-		err = errors.Wrap(err, "[WriteXLS]")
+		err = errors.Wrap(err, "[WriteXLS] error saving file")
 		return
 	}
 
@@ -256,4 +247,20 @@ func ReverseStrings(slice []string) []string {
 		reversed[length-i-1] = v
 	}
 	return reversed
+}
+
+func ValidateJobType(jobType string) error {
+	// Define the valid job types
+	validJobTypes := map[string]struct{}{
+		"download_redeem":             {},
+		"upload":                      {},
+		"download_history_validation": {},
+	}
+
+	// Check if the jobType exists in the valid job types
+	if _, exists := validJobTypes[jobType]; !exists {
+		return fmt.Errorf("invalid job type: %s", jobType)
+	}
+
+	return nil
 }

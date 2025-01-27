@@ -1,8 +1,6 @@
 package pkg
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/xuri/excelize/v2"
 )
@@ -19,7 +17,6 @@ func ReadFromFile(file string) (rows [][]string, err error) {
 		// Close the spreadsheet.
 		if err := f.Close(); err != nil {
 			err = errors.Wrap(err, "[pkg.ReadFromFile]")
-			fmt.Println(err.Error())
 		}
 	}()
 

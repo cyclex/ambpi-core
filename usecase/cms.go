@@ -7,7 +7,6 @@ import (
 
 	"time"
 
-	"github.com/apex/log"
 	"github.com/cyclex/ambpi-core/api"
 	"github.com/cyclex/ambpi-core/domain"
 	"github.com/cyclex/ambpi-core/domain/model"
@@ -24,15 +23,17 @@ type cmsUcase struct {
 	q              repository.QueueRepository
 	contextTimeout time.Duration
 	chatUcase      domain.ChatUcase
+	folderDownload string
 }
 
-func NewCmsUcase(m repository.ModelRepository, ctxTimeout time.Duration, chatUcase domain.ChatUcase, q repository.QueueRepository) domain.CmsUcase {
+func NewCmsUcase(m repository.ModelRepository, ctxTimeout time.Duration, chatUcase domain.ChatUcase, q repository.QueueRepository, folderDownload string) domain.CmsUcase {
 
 	return &cmsUcase{
 		m:              m,
 		contextTimeout: ctxTimeout,
 		chatUcase:      chatUcase,
 		q:              q,
+		folderDownload: folderDownload,
 	}
 }
 
@@ -43,6 +44,7 @@ func (self *cmsUcase) Login(c context.Context, req api.Login) (data map[string]i
 
 	res, err := self.m.Login(req.Username, req.Password)
 	if err != nil {
+		err = errors.Wrap(err, "[usecase.Login]")
 		return
 	}
 
@@ -91,12 +93,18 @@ func (self *cmsUcase) Report(c context.Context, req api.Report, category string)
 	case "summary":
 		data, err = self.m.ReportSummary()
 		break
-	// case "messages":
-	// 	data, err = self.m.ReportMessages(req)
-	// 	break
+
+	case "user":
+		data, err = self.m.ReportUsers()
+		break
+
 	default:
 		// data, err = self.m.ReportRedeem(req, "")
 		break
+	}
+
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.Report]")
 	}
 
 	return
@@ -146,7 +154,6 @@ func (self *cmsUcase) SendPushNotif(c context.Context, req api.SendPushNotif) (e
 	err = self.m.CreateConversationsLog(clog)
 	if err != nil {
 		err = errors.Wrap(err, "[usecase.SendPushNotif] CreateConversationsLog")
-		log.Error(err.Error())
 	}
 
 	return
@@ -157,8 +164,12 @@ func (self *cmsUcase) GetProgram(c context.Context) (data []map[string]interface
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	return self.m.FindProgram()
+	data, err = self.m.FindProgram()
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.GetProgram] FindProgram")
+	}
 
+	return
 }
 
 func (self *cmsUcase) SetProgram(c context.Context, cond, data map[string]interface{}) (err error) {
@@ -167,6 +178,9 @@ func (self *cmsUcase) SetProgram(c context.Context, cond, data map[string]interf
 	defer cancel()
 
 	_, err = self.m.SetProgram(cond, data)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.SetProgram] SetProgram")
+	}
 
 	return
 }
@@ -178,11 +192,17 @@ func (self *cmsUcase) ImportPrize(c context.Context, req api.Job) (status bool, 
 
 	rows, err := pkg.ReadFromFile(req.File)
 	if err != nil {
-		fmt.Println(err.Error())
+		err = errors.Wrap(err, "[usecase.ImportPrize] ReadFromFile")
 		return
 	}
 
 	totalRows, err = self.m.CreatePrize(rows)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.ImportPrize] CreatePrize")
+		return
+	}
+
+	status = true
 
 	return
 }
@@ -191,6 +211,11 @@ func (self *cmsUcase) CreateJob(c context.Context, req api.Job) (err error) {
 
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
+
+	if err = pkg.ValidateJobType(req.JobType); err != nil {
+		err = errors.Wrap(err, "[usecase.CreateJob] ValidateJobType")
+		return
+	}
 
 	data := model.QueueJob{
 		JobType:   req.JobType,
@@ -202,6 +227,9 @@ func (self *cmsUcase) CreateJob(c context.Context, req api.Job) (err error) {
 		EndAt:     req.EndDate,
 	}
 	err = self.q.CreateJob(data)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.CreateJob] CreateJob")
+	}
 
 	return
 }
@@ -238,7 +266,7 @@ func (self *cmsUcase) DeleteUser(c context.Context, deletedID int64) (err error)
 
 	err = self.m.RemoveUser([]int64{deletedID})
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.DeleteUser]")
+		err = errors.Wrap(err, "[usecase.DeleteUser] RemoveUser")
 	}
 
 	return
@@ -257,7 +285,7 @@ func (self *cmsUcase) SetUser(c context.Context, req api.User) (err error) {
 
 	err = self.m.SetUser(req.ID, dataUser)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.SetUser]")
+		err = errors.Wrap(err, "[usecase.SetUser] SetUser")
 	}
 
 	return
@@ -274,7 +302,7 @@ func (self *cmsUcase) SetUserPassword(c context.Context, req api.User) (err erro
 
 	err = self.m.SetUserPassword(req.Username, dataUser)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.SetUser]")
+		err = errors.Wrap(err, "[usecase.SetUserPassword] SetUserPassword")
 	}
 
 	return
@@ -287,7 +315,7 @@ func (self *cmsUcase) CheckToken(c context.Context, req api.CheckToken) (err err
 
 	err = self.m.CheckToken(req.Token)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.CheckToken]")
+		err = errors.Wrap(err, "[usecase.CheckToken] CheckToken")
 	}
 
 	return
@@ -298,16 +326,22 @@ func (self *cmsUcase) DownloadRedeem(c context.Context, req api.Job) (files stri
 	_, cancel := context.WithTimeout(c, self.contextTimeout)
 	defer cancel()
 
-	data, err := self.m.ReportRedeem(api.Report{From: req.StartDate, To: req.EndDate})
+	var data map[string]interface{}
+	if req.JobType == "download_redeem" {
+		data, err = self.m.ReportRedeem(api.Report{From: req.StartDate, To: req.EndDate})
+	} else {
+		data, err = self.m.ReportHistoryValidation(api.Report{From: req.StartDate, To: req.EndDate})
+	}
+
 	if err != nil {
 		err = errors.Wrap(err, "[usecase.DownloadRedeem]")
 		return
 	}
 
 	if datas, ok := data["data"].([]map[string]interface{}); ok {
-		files, totalRows, err = pkg.WriteXLS(datas)
+		files, totalRows, err = pkg.WriteXLS(datas, self.folderDownload)
 		if err != nil {
-			err = errors.Wrap(err, "[usecase.DownloadRedeem]")
+			err = errors.Wrap(err, "[usecase.DownloadRedeem] WriteXLS")
 		} else {
 			status = true
 		}
@@ -328,7 +362,7 @@ func (self *cmsUcase) ValidateRedeem(c context.Context, req api.ValidateRedeem) 
 
 	data, err := self.m.FindFirstRedeemPrizes(cond)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.ValidateRedeem]")
+		err = errors.Wrap(err, "[usecase.ValidateRedeem] FindFirstRedeemPrizes")
 		return
 	}
 
@@ -340,13 +374,13 @@ func (self *cmsUcase) ValidateRedeem(c context.Context, req api.ValidateRedeem) 
 		}
 		p, errs := self.m.FindFirstPrizes(cond)
 		if errs != nil {
-			err = errors.Wrap(errs, "[usecase.ValidateRedeem]")
+			err = errors.Wrap(errs, "[usecase.ValidateRedeem] FindFirstPrizes")
 			return
 		}
 		templateName = "valid_belumberuntung"
 		lotteryNumber, errs = pkg.GenerateRandomCode(8)
 		if errs != nil {
-			err = errors.Wrap(errs, "[usecase.ValidateRedeem]")
+			err = errors.Wrap(errs, "[usecase.ValidateRedeem] GenerateRandomCode")
 			return
 		}
 		param = append(param, lotteryNumber)
@@ -359,7 +393,7 @@ func (self *cmsUcase) ValidateRedeem(c context.Context, req api.ValidateRedeem) 
 	pn := api.SendPushNotif{RedeemID: data.ID, PushBy: req.Author, TemplateName: templateName, Param: param}
 	err = self.SendPushNotif(c, pn)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.ValidateRedeem]")
+		err = errors.Wrap(err, "[usecase.ValidateRedeem] SendPushNotif")
 		return
 	}
 
@@ -368,12 +402,12 @@ func (self *cmsUcase) ValidateRedeem(c context.Context, req api.ValidateRedeem) 
 		"notes":           req.Notes,
 		"approved":        req.Approved,
 		"lottery_number":  lotteryNumber,
-		"date_validation": time.Now().Local(),
+		"date_validation": time.Now().Local().Format("2006-01-02 15:04:05"),
 	}
 
 	err = self.m.SetRedeemPrizes(cond, updated)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.ValidateRedeem]")
+		err = errors.Wrap(err, "[usecase.ValidateRedeem] SetRedeemPrizes")
 		return
 	}
 
@@ -386,7 +420,7 @@ func (self *cmsUcase) ValidateRedeem(c context.Context, req api.ValidateRedeem) 
 		}
 		_, err = self.m.SetPrizes(cond, updated)
 		if err != nil {
-			err = errors.Wrap(err, "[usecase.ValidateRedeem]")
+			err = errors.Wrap(err, "[usecase.ValidateRedeem] SetPrizes")
 			return
 		}
 	}
@@ -401,7 +435,7 @@ func (self *cmsUcase) FindDetailRedeem(c context.Context, id string) (data map[s
 
 	data, err = self.m.FindRedeemID(id)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.FindDetailRedeem]")
+		err = errors.Wrap(err, "[usecase.FindDetailRedeem] FindRedeemID")
 		return
 	}
 
@@ -415,7 +449,7 @@ func (self *cmsUcase) ListJob(c context.Context, category string) (data []map[st
 
 	jobs, err := self.q.GetJob(category)
 	if err != nil {
-		err = errors.Wrap(err, "[usecase.ListJob]")
+		err = errors.Wrap(err, "[usecase.ListJob] GetJob")
 		return
 	}
 

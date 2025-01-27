@@ -35,13 +35,15 @@ type Chatbot struct {
 	PhoneID           string `json:"phone_id"`
 	AccessToken       string `json:"access_token"`
 	WabaAccountNumber string `json:"waba_account_number"`
+	AccessTokenPush   string `json:"access_token_push"`
 }
 
 type Service struct {
-	Log      Log      `json:"log"`
-	Database Database `json:"database"`
-	Queue    Queue    `json:"queue"`
-	Chatbot  Chatbot  `json:"chatbot"`
+	Log            Log      `json:"log"`
+	Database       Database `json:"database"`
+	Queue          Queue    `json:"queue"`
+	Chatbot        Chatbot  `json:"chatbot"`
+	DownloadFolder string   `json:"download_folder"`
 }
 
 func LoadServiceConfig(configFilePath string) (cfg *Service, err error) {

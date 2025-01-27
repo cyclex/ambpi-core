@@ -12,8 +12,6 @@ import (
 
 var processing, processingAuth, processingRedeem, processingCalculateQuota, processingSendReply, processingRecurringQuota, processingRefresh, processingJob bool
 
-// var cbLog *logrus.Logger
-// var svcLog *logrus.Logger
 var winLog *logrus.Logger
 
 func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcase domain.CmsUcase, timeout time.Duration, debug bool) {
@@ -22,8 +20,6 @@ func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcas
 	_, cancel := context.WithTimeout(c, timeout)
 	defer cancel()
 
-	// cbLog = pkg.New("chatbot")
-	// svcLog = pkg.New("service")
 	winLog = pkg.New("winners", debug)
 
 	cr := cron.New()
@@ -53,13 +49,5 @@ func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcas
 	})
 
 	cr.Start()
-
-	// for i := 100; i < 201; i++ {
-	// 	b := fmt.Sprintf("ABC000000000000%d", i)
-	// 	s := pkg.GenerateAlfaCode(b)
-
-	// 	fmt.Printf("%s\n", s)
-
-	// }
 
 }

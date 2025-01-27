@@ -69,8 +69,14 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 		Prize          string `json:"prize"`
 		LotteryNumber  string `json:"lotteryNumber"`
 		DateValidation string `json:"dateValidation"`
-		Status         bool   `json:"status"`
+		Approved       bool   `json:"approved"`
 		RedeemID       int    `json:"redeemID"`
+		County         string `json:"county"`
+		Profession     string `json:"profession"`
+		NIK            string `json:"nik"`
+		DateRedeem     string `json:"dateRedeem"`
+		Amount         string `json:"amount"`
+		Notes          string `json:"notes"`
 	}
 
 	var (
@@ -84,7 +90,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 	if req.From != "" {
 		q = q.Where("date(date_validation) BETWEEN ? AND ?", req.From, req.To)
 	}
-	q = q.Where("date_validation is not null")
+	q = q.Where("date_validation != ''")
 
 	if req.Keyword != "" {
 		column := fmt.Sprintf("%s ilike ?", req.Column)
@@ -92,7 +98,10 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 	}
 
 	q.Count(&rows)
-	err = q.Order("date_validation desc").Limit(req.Limit).Offset(req.Offset).Find(&res).Error
+	if req.Limit > 0 {
+		q = q.Limit(req.Limit)
+	}
+	err = q.Order("date_validation desc").Offset(req.Offset).Find(&res).Error
 	if err != nil {
 		return
 	}
@@ -105,83 +114,14 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 			"prize":            v.Prize,
 			"lotteryNumber":    v.LotteryNumber,
 			"dateValidation":   v.DateValidation,
-			"statusValidation": v.Status,
+			"statusValidation": v.Approved,
 			"id":               v.RedeemID,
-		}
-
-		datas = append(datas, x)
-	}
-
-	data = map[string]interface{}{
-		"rows": rows,
-		"data": datas,
-	}
-
-	return
-}
-
-func (self *postgreRepo) ReportRedeemNotify(req api.Report) (data map[string]interface{}, err error) {
-
-	type tmp struct {
-		Rnum              string `json:"rnum"`
-		Prize             string `json:"prize"`
-		Msisdn            string `json:"msisdn"`
-		Name              string `json:"name"`
-		UniqueCode        string `json:"uniqueCode"`
-		DateRedeem        string `json:"dateRedeem"`
-		DatePush          string `json:"datePush"`
-		Nik               string `json:"nik"`
-		TransactionNumber string `json:"transactionNumber"`
-		RedeemID          int    `json:"redeemID"`
-		County            string `json:"county"`
-	}
-
-	var (
-		res   []tmp
-		cond  map[string]interface{}
-		datas []map[string]interface{}
-		rows  int64
-	)
-
-	cond = map[string]interface{}{
-		"is_grand_prize": true,
-	}
-	q := self.DB.Table("detailed_prize_redemptions").Select("*, row_number() OVER () as rnum").Where(cond)
-	if req.From != "" {
-		q = q.Where("date(date_redeem) BETWEEN ? AND ?", req.From, req.To)
-	}
-
-	if req.Keyword != "" {
-		column := fmt.Sprintf("%s ilike ?", req.Column)
-		q = q.Where(column, "%"+req.Keyword+"%")
-	}
-
-	q.Count(&rows)
-	err = q.Order("date_redeem desc").Find(&res).Error
-	if err != nil {
-		return
-	}
-
-	for _, v := range res {
-		datePushStr := ""
-		dateRedeem, _ := time.Parse(LayoutDefault, v.DateRedeem)
-		if v.DatePush != "" {
-			datePush, _ := time.Parse(LayoutDefault, v.DatePush)
-			datePushStr = datePush.In(Loc).Format(LayoutDateTime)
-		}
-
-		x := map[string]interface{}{
-			"rNum":              v.Rnum,
-			"name":              v.Name,
-			"msisdn":            fmt.Sprintf("`%s", v.Msisdn),
-			"nik":               fmt.Sprintf("`%s", v.Nik),
-			"transactionNumber": v.TransactionNumber,
-			"code":              v.UniqueCode,
-			"dateRedeem":        dateRedeem.In(Loc).Format(LayoutDateTime),
-			"prize":             v.Prize,
-			"datePush":          datePushStr,
-			"redeemID":          v.RedeemID,
-			"county":            v.County,
+			"county":           v.County,
+			"nik":              v.NIK,
+			"profession":       v.Profession,
+			"dateRedeem":       v.DateRedeem,
+			"amount":           v.Amount,
+			"notes":            v.Notes,
 		}
 
 		datas = append(datas, x)
@@ -234,10 +174,11 @@ func (self *postgreRepo) ReportRedeem(req api.Report) (data map[string]interface
 		Msisdn     string `json:"msisdn"`
 		Name       string `json:"name"`
 		Nik        string `json:"nik"`
-		DateRedeem string `column:"dateRedeem" json:"dateRedeem"`
+		DateRedeem string `json:"dateRedeem"`
 		Prize      string `json:"prize"`
 		County     string `json:"county"`
 		Profession string `json:"profession"`
+		RedeemID   string `json:"redeem_id"`
 	}
 
 	var (
@@ -250,7 +191,7 @@ func (self *postgreRepo) ReportRedeem(req api.Report) (data map[string]interface
 	if req.From != "" {
 		q = q.Where("date(date_redeem) BETWEEN ? AND ?", req.From, req.To)
 	}
-	q = q.Where("date_validation isnull")
+	q = q.Where("date_validation = ''")
 
 	if req.Keyword != "" {
 		column := fmt.Sprintf("%s ilike ?", req.Column)
@@ -280,6 +221,7 @@ func (self *postgreRepo) ReportRedeem(req api.Report) (data map[string]interface
 			"prize":      v.Prize,
 			"county":     v.County,
 			"profession": v.Profession,
+			"redeem_id":  v.RedeemID,
 		}
 
 		datas = append(datas, x)
@@ -366,12 +308,12 @@ func (r *postgreRepo) ReportUsage(req api.Report) (map[string]interface{}, error
 	}
 
 	// Count invalid submissions
-	if err := baseQuery().Where("approved = ?", "false").Where("date_validation is not null").Count(&totalInvalid).Error; err != nil {
+	if err := baseQuery().Where("approved = ?", "false").Where("date_validation != ''").Count(&totalInvalid).Error; err != nil {
 		return nil, fmt.Errorf("failed to count invalid submissions: %w", err)
 	}
 
 	// Count pending submissions
-	if err := baseQuery().Where("date_validation isnull").Count(&totalPending).Error; err != nil {
+	if err := baseQuery().Where("date_validation = ''").Count(&totalPending).Error; err != nil {
 		return nil, fmt.Errorf("failed to count pending submissions: %w", err)
 	}
 
@@ -428,4 +370,34 @@ func (r *postgreRepo) ReportAvailability() (data map[string]interface{}, err err
 	data["percentage"] = percentage
 
 	return data, nil
+}
+
+func (self *postgreRepo) ReportUsers() (data map[string]interface{}, err error) {
+
+	var (
+		datas []map[string]interface{}
+		users []model.UserCMS
+	)
+	err = self.DB.Find(&users).Error
+	if err != nil {
+		err = errors.Wrap(err, "[postgre.FindUserBy]")
+		return
+	}
+
+	for _, v := range users {
+		x := map[string]interface{}{
+			"id":       v.ID,
+			"username": v.Username,
+			"flag":     v.Flag,
+			"level":    v.Level,
+		}
+
+		datas = append(datas, x)
+	}
+
+	data = map[string]interface{}{
+		"data": datas,
+	}
+
+	return
 }

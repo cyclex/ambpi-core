@@ -5,10 +5,8 @@ import "github.com/jinzhu/gorm"
 type UsersUniqueCode struct {
 	gorm.Model
 	WaID          string `gorm:"wa_id" json:"waID"`
-	Program       string `gorm:"program" json:"program"`
 	Name          string `gorm:"name" json:"name"`
 	Profession    string `gorm:"profession" json:"profession"`
-	SessionID     string `gorm:"session_id" json:"session_id"`
 	IsFormatValid bool   `gorm:"is_format_valid" json:"isFormatValid"`
 	Msisdn        string `gorm:"msisdn" json:"msisdn"`
 	Raw           string `gorm:"raw" json:"raw"`
