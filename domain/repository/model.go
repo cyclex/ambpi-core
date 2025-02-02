@@ -29,13 +29,13 @@ type ModelRepository interface {
 
 	ReportSummary() (data map[string]interface{}, err error)
 	ReportHistoryValidation(req api.Report) (data map[string]interface{}, err error)
-	ReportPrize(req api.Report) (data map[string]interface{}, err error)
+	ReportPrizes() (data map[string]interface{}, err error)
 	ReportRedeem(req api.Report) (data map[string]interface{}, err error)
 	ReportUsage(req api.Report) (data map[string]interface{}, err error)
 	ReportAvailability() (data map[string]interface{}, err error)
 	ReportUsers() (data map[string]interface{}, err error)
+	ReportCampaign() (data map[string]interface{}, err error)
 
-	FindProgram() (data []map[string]interface{}, err error)
 	SetProgram(cond, updated map[string]interface{}) (affected int64, err error)
 	IsProgramActive(retail string) (status int)
 

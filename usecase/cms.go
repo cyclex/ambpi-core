@@ -83,7 +83,7 @@ func (self *cmsUcase) Report(c context.Context, req api.Report, category string)
 		break
 
 	case "prize":
-		data, err = self.m.ReportPrize(req)
+		data, err = self.m.ReportPrizes()
 		break
 
 	case "usage":
@@ -96,6 +96,40 @@ func (self *cmsUcase) Report(c context.Context, req api.Report, category string)
 
 	case "user":
 		data, err = self.m.ReportUsers()
+		break
+
+	case "campaign":
+		data, err = self.m.ReportCampaign()
+		break
+
+	case "job":
+		var n []map[string]interface{}
+		x, errs := self.q.GetJob(req.Column)
+		if errs != nil {
+			return
+		}
+
+		for _, job := range x {
+			jobMap := map[string]interface{}{
+				"id":        job.ID,
+				"jobType":   pkg.JobType(job.JobType),
+				"jobStatus": pkg.JobStatus(job.JobStatus),
+				"author":    job.Author,
+				"file":      pkg.GetFilename(job.File),
+				"totalRows": job.TotalRows,
+				"startAt":   job.StartAt,
+				"endAt":     job.EndAt,
+				"createdAt": job.CreatedAt,
+			}
+			n = append(n, jobMap)
+		}
+
+		data = map[string]interface{}{
+			"data": n,
+			"rows": len(n),
+		}
+		return
+
 		break
 
 	default:
@@ -154,19 +188,6 @@ func (self *cmsUcase) SendPushNotif(c context.Context, req api.SendPushNotif) (e
 	err = self.m.CreateConversationsLog(clog)
 	if err != nil {
 		err = errors.Wrap(err, "[usecase.SendPushNotif] CreateConversationsLog")
-	}
-
-	return
-}
-
-func (self *cmsUcase) GetProgram(c context.Context) (data []map[string]interface{}, err error) {
-
-	_, cancel := context.WithTimeout(c, self.contextTimeout)
-	defer cancel()
-
-	data, err = self.m.FindProgram()
-	if err != nil {
-		err = errors.Wrap(err, "[usecase.GetProgram] FindProgram")
 	}
 
 	return
@@ -460,7 +481,7 @@ func (self *cmsUcase) ListJob(c context.Context, category string) (data []map[st
 			"job_type":   job.JobType,
 			"job_status": job.JobStatus,
 			"author":     job.Author,
-			"file":       job.File,
+			"file":       pkg.GetFilename(job.File),
 			"total_rows": job.TotalRows,
 			"expired_at": job.ExpiredAt,
 			"start_at":   job.StartAt,

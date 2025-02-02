@@ -36,7 +36,7 @@ type User struct {
 
 type ValidateRedeem struct {
 	ID       int64  `json:"id" validate:"required"`
-	Amount   int64  `json:"amount" validate:"required"`
+	Amount   int64  `json:"amount"`
 	Notes    string `json:"notes"`
 	Approved bool   `json:"approved"`
 	Author   string `json:"author" validate:"required"`

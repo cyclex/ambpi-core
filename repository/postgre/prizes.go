@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cyclex/ambpi-core/api"
 	"github.com/cyclex/ambpi-core/domain/model"
 	"github.com/cyclex/ambpi-core/pkg"
 	"github.com/pkg/errors"
@@ -44,41 +43,6 @@ func (self *postgreRepo) SetRedeemPrizes(cond, updated map[string]interface{}) (
 
 	return self.DB.Table("redeem_prizes").Where(cond).Updates(updated).Error
 
-}
-
-func (self *postgreRepo) ReportPrize(req api.Report) (data map[string]interface{}, err error) {
-
-	var (
-		res   []model.Prizes
-		datas []map[string]interface{}
-	)
-
-	err = self.DB.Table("v_prize_total").Where("prize_type = ?", req.PrizeType).Order("id asc").Find(&res).Error
-	if err != nil {
-		return
-	}
-
-	r := 1
-	for _, v := range res {
-		x := map[string]interface{}{
-			"no":          r,
-			"prize":       v.Prize,
-			"quota":       0,
-			"activeQuota": 0,
-			"action":      "",
-			"id":          v.ID,
-		}
-
-		datas = append(datas, x)
-		r++
-	}
-
-	data = map[string]interface{}{
-		"rows": len(datas),
-		"data": datas,
-	}
-
-	return
 }
 
 func (r *postgreRepo) CreatePrize(rows [][]string) (totalRows int, err error) {

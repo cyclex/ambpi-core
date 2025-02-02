@@ -264,3 +264,60 @@ func ValidateJobType(jobType string) error {
 
 	return nil
 }
+
+func JobStatus(val string) string {
+
+	switch val {
+	case "1":
+		return "On Progress"
+		break
+	case "2":
+		return "Failed"
+		break
+	case "3":
+		return "Success"
+		break
+	default:
+		break
+	}
+
+	return "error"
+}
+
+func JobType(val string) string {
+
+	switch val {
+	case "download":
+	case "download_redeem":
+		return "Data Redeem"
+		break
+	case "download_history_validation":
+		return "Data Validation"
+		break
+	default:
+		break
+	}
+
+	return "error"
+}
+
+func StatusValidation(val bool) string {
+
+	switch val {
+	case true:
+		return "Valid"
+		break
+	case false:
+		return "Invalid"
+		break
+	default:
+		break
+	}
+
+	return "error"
+}
+
+func GetFilename(path string) string {
+	parts := strings.Split(path, "/")
+	return parts[len(parts)-1]
+}

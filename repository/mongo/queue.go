@@ -209,7 +209,11 @@ func (self *mongoRepo) GetJob(category string) ([]model.QueueJob, error) {
 	// Perform the Find operation on the "jobs" collection
 	cond := bson.M{}
 	if category != "" {
-		cond = bson.M{"job_type": category}
+		if category == "download" {
+			cond = bson.M{"job_type": bson.M{"$in": []string{"download_redeem", "download_history_validation"}}}
+		} else {
+			cond = bson.M{"job_type": category}
+		}
 	}
 
 	// Define the sort option to order by created_at descending

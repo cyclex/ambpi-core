@@ -13,7 +13,6 @@ type CmsUcase interface {
 	FindDetailRedeem(c context.Context, category string) (data map[string]interface{}, err error)
 
 	SendPushNotif(c context.Context, req api.SendPushNotif) (err error)
-	GetProgram(c context.Context) (data []map[string]interface{}, err error)
 	SetProgram(c context.Context, cond, data map[string]interface{}) (err error)
 
 	ImportPrize(c context.Context, req api.Job) (status bool, totalRows int, err error)

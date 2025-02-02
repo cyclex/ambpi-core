@@ -42,8 +42,7 @@ func NewCmsHandler(e *echo.Echo, gw domain.CmsUcase, debug bool) {
 
 	e.POST("/v1/push", handler.sendPush, _AppMW.ReqSendPush)
 
-	e.GET("/v1/program", handler.getProgram)
-	e.PUT("/v1/program/:id", handler.setProgram)
+	e.PUT("/v1/campaign/:id", handler.setProgram)
 
 	e.POST("/v1/job/create", handler.createJob)
 	e.GET("/v1/job/:type", handler.listJob)
@@ -173,34 +172,6 @@ func (self *CmsHandler) sendPush(c echo.Context) error {
 		res = api.ResponseSuccess{
 			Status:  true,
 			Message: "success",
-		}
-	}
-
-	return c.JSON(code, res)
-}
-
-func (self *CmsHandler) getProgram(c echo.Context) error {
-
-	var res interface{}
-
-	code := http.StatusInternalServerError
-
-	ctx := c.Request().Context()
-
-	data, err := self.CmsGw.GetProgram(ctx)
-	if err != nil {
-		cmsLog.Error(err)
-		res = api.ResponseError{
-			Status:  false,
-			Message: err.Error(),
-		}
-
-	} else {
-		code = http.StatusOK
-		res = api.ResponseReport{
-			Status:  true,
-			Message: "success",
-			Data:    data,
 		}
 	}
 

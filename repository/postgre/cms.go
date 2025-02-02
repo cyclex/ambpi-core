@@ -2,12 +2,14 @@ package postgre
 
 import (
 	"crypto/md5"
+	"strconv"
 
 	"fmt"
 	"time"
 
 	"github.com/cyclex/ambpi-core/api"
 	"github.com/cyclex/ambpi-core/domain/model"
+	"github.com/cyclex/ambpi-core/pkg"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -93,7 +95,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 	q = q.Where("date_validation != ''")
 
 	if req.Keyword != "" {
-		column := fmt.Sprintf("%s ilike ?", req.Column)
+		column := fmt.Sprintf("%s::Text like ?", req.Column)
 		q = q.Where(column, "%"+req.Keyword+"%")
 	}
 
@@ -114,7 +116,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 			"prize":            v.Prize,
 			"lotteryNumber":    v.LotteryNumber,
 			"dateValidation":   v.DateValidation,
-			"statusValidation": v.Approved,
+			"statusValidation": pkg.StatusValidation(v.Approved),
 			"id":               v.RedeemID,
 			"county":           v.County,
 			"nik":              v.NIK,
@@ -161,6 +163,7 @@ func (r *postgreRepo) ReportSummary() (map[string]interface{}, error) {
 
 	// Prepare the output map
 	data := map[string]interface{}{
+		"rows": len(results),
 		"data": results,
 	}
 
@@ -251,6 +254,7 @@ func (self *postgreRepo) FindRedeemID(id string) (data map[string]interface{}, e
 		DateRedeem     string `json:"dateRedeem"`
 		DateValidation string `json:"dateValidation"`
 		Approved       string `json:"approved"`
+		RedeemID       string `json:"redeem_id"`
 	}
 
 	var (
@@ -267,6 +271,7 @@ func (self *postgreRepo) FindRedeemID(id string) (data map[string]interface{}, e
 	}
 
 	dateRedeem, _ := time.Parse(LayoutDefault, res.DateRedeem)
+	approved, _ := strconv.ParseBool(res.Approved)
 	data = map[string]interface{}{
 		"msisdn":         fmt.Sprintf("`%s", res.Msisdn),
 		"name":           res.Name,
@@ -276,10 +281,11 @@ func (self *postgreRepo) FindRedeemID(id string) (data map[string]interface{}, e
 		"county":         res.County,
 		"profession":     res.Profession,
 		"notes":          res.Notes,
-		"approved":       res.Approved,
+		"approved":       pkg.StatusValidation(approved),
 		"dateValidation": res.DateValidation,
 		"amount":         res.Amount,
 		"lotteryNumber":  res.LotteryNumber,
+		"id":             res.RedeemID,
 	}
 
 	return
@@ -374,22 +380,35 @@ func (r *postgreRepo) ReportAvailability() (data map[string]interface{}, err err
 
 func (self *postgreRepo) ReportUsers() (data map[string]interface{}, err error) {
 
+	type tmp struct {
+		Rnum      string `json:"rnum"`
+		Username  string `json:"username"`
+		ID        string `json:"id"`
+		Flag      string `json:"flag"`
+		Level     string `json:"level"`
+		CreatedAt string `json:"createdAt"`
+	}
+
 	var (
 		datas []map[string]interface{}
-		users []model.UserCMS
+		res   []tmp
 	)
-	err = self.DB.Find(&users).Error
+
+	err = self.DB.Table("user_cms").Select("*, row_number() OVER () as rnum").Order("id desc").Find(&res).Error
 	if err != nil {
-		err = errors.Wrap(err, "[postgre.FindUserBy]")
 		return
 	}
 
-	for _, v := range users {
+	for _, v := range res {
+		createdAt, _ := strconv.Atoi(v.CreatedAt)
+		createdAts := time.Unix(int64(createdAt), 0).Format("2006-01-02 15:04:05")
 		x := map[string]interface{}{
-			"id":       v.ID,
-			"username": v.Username,
-			"flag":     v.Flag,
-			"level":    v.Level,
+			"id":        v.ID,
+			"username":  v.Username,
+			"flag":      v.Flag,
+			"level":     v.Level,
+			"rNum":      v.Rnum,
+			"createdAt": createdAts,
 		}
 
 		datas = append(datas, x)
@@ -397,6 +416,82 @@ func (self *postgreRepo) ReportUsers() (data map[string]interface{}, err error) 
 
 	data = map[string]interface{}{
 		"data": datas,
+		"rows": len(datas),
+	}
+
+	return
+}
+
+func (self *postgreRepo) ReportCampaign() (data map[string]interface{}, err error) {
+
+	type tmp struct {
+		Retail    string `json:"retail"`
+		Status    bool   `json:"status"`
+		StartDate int    `json:"start_date"`
+		EndDate   int    `json:"end_date"`
+		ID        int    `json:"id"`
+	}
+
+	var (
+		datas []map[string]interface{}
+		res   []tmp
+	)
+
+	err = self.DB.Table("programs").Find(&res).Error
+	if err != nil {
+		return
+	}
+
+	for _, v := range res {
+
+		x := map[string]interface{}{
+			"retail":    v.Retail,
+			"startDate": time.Unix(int64(v.StartDate), 0).Local().Format("2006-01-02 15:04:05"),
+			"endDate":   time.Unix(int64(v.EndDate), 0).Local().Format("2006-01-02 15:04:05"),
+			"id":        v.ID,
+		}
+
+		datas = append(datas, x)
+	}
+
+	data = map[string]interface{}{
+		"data": datas,
+		"rows": len(datas),
+	}
+
+	return
+}
+
+func (self *postgreRepo) ReportPrizes() (data map[string]interface{}, err error) {
+
+	type tmp struct {
+		Prize          string `json:"prize"`
+		SequenceNumber string `json:"sequence_number"`
+	}
+
+	var (
+		datas []map[string]interface{}
+		res   []tmp
+	)
+
+	err = self.DB.Table("prizes").Order("sequence_number asc").Find(&res).Error
+	if err != nil {
+		return
+	}
+
+	for _, v := range res {
+
+		x := map[string]interface{}{
+			"prize":          v.Prize,
+			"sequenceNumber": v.SequenceNumber,
+		}
+
+		datas = append(datas, x)
+	}
+
+	data = map[string]interface{}{
+		"data": datas,
+		"rows": len(datas),
 	}
 
 	return
