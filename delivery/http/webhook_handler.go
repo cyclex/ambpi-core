@@ -32,7 +32,7 @@ func NewOrderHandler(e *echo.Echo, chatUcase domain.ChatUcase, debug bool) {
 	}))
 
 	e.POST("/v1/webhooks/whatsapp", handler.webhooksWhatsapp)
-	e.GET("/v1/webhooks/whatsapp", handler.webhooksWhatsapp)
+	e.GET("/v1/webhooks/whatsapp", handler.health)
 }
 
 func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
@@ -63,6 +63,18 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 		err = errors.Wrap(err, "[webhooksWhatsapp] IncomingMessages")
 		appLog.Error(err)
 	}
+
+	return
+}
+
+func (self *OrderHandler) health(c echo.Context) (err error) {
+
+	res := api.ResponseChatbot{
+		Code:       200,
+		Message:    http.StatusText(200),
+		ServerTime: time.Now().Local().Unix(),
+	}
+	c.JSON(200, res)
 
 	return
 }
