@@ -55,6 +55,7 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	if err != nil {
 		err = errors.Wrap(err, "[webhooksWhatsapp] Bind")
 		appLog.Error(err)
+		return
 	}
 
 	code = 200
