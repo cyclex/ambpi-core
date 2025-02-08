@@ -79,13 +79,36 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	}
 
 	var inbound api.CproMessage
-	if request.ID != "" {
-		inbound = request.Data.Entry[0].Changes[0].Value.Messages[0]
-	} else {
-		err = errors.New("[webhooksWhatsapp] invalid request")
-		appLog.Error(err)
+
+	if request.ID == "" {
+		err = errors.New("[webhooksWhatsapp] invalid request: missing ID")
+		appLog.Debug(err)
 		return
 	}
+
+	// Ensure Entry exists and is not empty
+	if len(request.Data.Entry) == 0 {
+		err = errors.New("[webhooksWhatsapp] invalid request: missing Entry array")
+		appLog.Debug(err)
+		return
+	}
+
+	// Ensure Changes exists and is not empty
+	if len(request.Data.Entry[0].Changes) == 0 {
+		err = errors.New("[webhooksWhatsapp] invalid request: missing Changes array")
+		appLog.Debug(err)
+		return
+	}
+
+	// Ensure Messages exists and is not empty
+	if len(request.Data.Entry[0].Changes[0].Value.Messages) == 0 {
+		err = errors.New("[webhooksWhatsapp] invalid request: missing Messages array")
+		appLog.Debug(err)
+		return
+	}
+
+	// Extract the message safely
+	inbound = request.Data.Entry[0].Changes[0].Value.Messages[0]
 
 	code = 200
 	_, err = self.Ch.IncomingMessages(inbound)
