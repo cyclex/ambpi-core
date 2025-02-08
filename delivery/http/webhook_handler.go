@@ -58,8 +58,17 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 		return
 	}
 
+	var inbound api.CproMessage
+	if len(request.Entry) > 0 {
+		inbound = request.Entry[0].Changes[0].Value.Messages[0]
+	} else {
+		err = errors.New("[webhooksWhatsapp] invalid request")
+		appLog.Error(err)
+		return
+	}
+
 	code = 200
-	_, err = self.Ch.IncomingMessages(request.Entry[0].Changes[0].Value.Messages[0])
+	_, err = self.Ch.IncomingMessages(inbound)
 	if err != nil {
 		err = errors.Wrap(err, "[webhooksWhatsapp] IncomingMessages")
 		appLog.Error(err)
