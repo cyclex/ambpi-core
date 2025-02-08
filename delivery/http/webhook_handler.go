@@ -37,51 +37,9 @@ func NewOrderHandler(e *echo.Echo, chatUcase domain.ChatUcase, debug bool) {
 	e.GET("/v1/webhooks/whatsapp", handler.health)
 }
 
-func (self *OrderHandler) webhooksWhatsappBak(c echo.Context) (err error) {
-
-	var (
-		request api.CproWebhookPayload
-		code    = 400
-	)
-
-	defer func(code *int) {
-		res := api.ResponseChatbot{
-			Code:       *code,
-			Message:    http.StatusText(*code),
-			ServerTime: time.Now().Local().Unix(),
-		}
-		c.JSON(*code, res)
-	}(&code)
-
-	err = c.Bind(&request)
-	if err != nil {
-		err = errors.Wrap(err, "[webhooksWhatsapp] Bind")
-		appLog.Error(err)
-		return
-	}
-
-	var inbound api.CproMessage
-	if len(request.Entry) > 0 {
-		inbound = request.Entry[0].Changes[0].Value.Messages[0]
-	} else {
-		err = errors.New("[webhooksWhatsapp] invalid request")
-		appLog.Error(err)
-		return
-	}
-
-	code = 200
-	_, err = self.Ch.IncomingMessages(inbound)
-	if err != nil {
-		err = errors.Wrap(err, "[webhooksWhatsapp] IncomingMessages")
-		appLog.Error(err)
-	}
-
-	return
-}
-
 func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	var (
-		request api.CproWebhookPayload
+		request api.CproPayload
 		code    = 400
 	)
 
@@ -121,8 +79,8 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	}
 
 	var inbound api.CproMessage
-	if len(request.Entry) > 0 {
-		inbound = request.Entry[0].Changes[0].Value.Messages[0]
+	if request.ID != "" {
+		inbound = request.Data.Entry[0].Changes[0].Value.Messages[0]
 	} else {
 		err = errors.New("[webhooksWhatsapp] invalid request")
 		appLog.Error(err)

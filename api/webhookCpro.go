@@ -56,3 +56,18 @@ type CproWebhookPayload struct {
 	Object string      `json:"object"`
 	Entry  []CproEntry `json:"entry"`
 }
+
+type CproAccount struct {
+	ID           string `json:"id"`
+	Account      string `json:"account"`
+	AccountTitle string `json:"account_title"`
+}
+
+type CproPayload struct {
+	ID        string             `json:"id"`
+	MID       string             `json:"mid"`
+	ClientID  string             `json:"client_id"`
+	ChannelID string             `json:"channel_id"`
+	Account   CproAccount        `json:"account"`
+	Data      CproWebhookPayload `json:"data"` // Using `any` since "data" is an empty object (can be changed to `map[string]interface{}` if needed)
+}
