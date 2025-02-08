@@ -56,7 +56,7 @@ var (
 	systemError = "System error"
 )
 
-func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, accessToken string, queueRepo repository.QueueRepository, rdb *redis.Client) domain.ChatUcase {
+func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID string, queueRepo repository.QueueRepository, rdb *redis.Client) domain.ChatUcase {
 
 	return &chatUcase{
 		m:           m,
@@ -66,6 +66,8 @@ func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, ac
 		q:           queueRepo,
 		Rdb:         rdb,
 		UrlPush:     urlPush,
+		AccountID:   accountID,
+		DivisionID:  divisionID,
 	}
 }
 

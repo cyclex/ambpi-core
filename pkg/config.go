@@ -36,6 +36,8 @@ type Chatbot struct {
 	AccessToken       string `json:"access_token"`
 	WabaAccountNumber string `json:"waba_account_number"`
 	AccessTokenPush   string `json:"access_token_push"`
+	DivisionID        string `json:"division_id"`
+	AccountID         string `json:"account_id"`
 }
 
 type Service struct {

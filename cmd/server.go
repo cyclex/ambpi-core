@@ -106,8 +106,10 @@ func run_server(server, config string, debug bool) (err error) {
 	urlPush := cfg.Chatbot.HostPush
 	accessToken := cfg.Chatbot.AccessToken
 	downloadFolder := cfg.DownloadFolder
+	accountID := cfg.Chatbot.AccountID
+	divisionID := cfg.Chatbot.DivisionID
 	model := postgre.NewPostgreRepository(c, conn)
-	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, ordersQueue, rdb)
+	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, ordersQueue, rdb)
 	cmsUcase := usecase.NewCmsUcase(model, timeoutCtx, chatUcase, ordersQueue, downloadFolder)
 	orderUcase := usecase.NewOrdersUcase(ordersQueue, timeoutCtx)
 
@@ -222,10 +224,12 @@ func run_webhook(server, config string, debug bool) (err error) {
 	urlSendMsg := cfg.Chatbot.Host
 	accessToken := cfg.Chatbot.AccessToken
 	urlPush := cfg.Chatbot.HostPush
+	accountID := cfg.Chatbot.AccountID
+	divisionID := cfg.Chatbot.DivisionID
 
 	model := postgre.NewPostgreRepository(c, conn)
 	ordersQueue := mongo.NewmongoRepository(c, queue.Database(queueName), "chatbot", expiredQueue)
-	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, ordersQueue, rdb)
+	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, ordersQueue, rdb)
 
 	e := echo.New()
 	_HttpDelivery.NewOrderHandler(e, chatUcase, debug)
