@@ -303,7 +303,7 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 	)
 
 	var payloadBytes []byte
-	url := fmt.Sprintf("%s/v16.0/%s/messages", self.UrlPush, self.PhoneID)
+	url := fmt.Sprintf("%s/v1/%s/messages", self.UrlPush, self.AccountID)
 	param := []api.CproParameter{}
 
 	for _, chat := range chats {
@@ -312,10 +312,9 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 	switch types {
 	case TypePush:
 		payload := api.CproPayloadPush{
-			MessagingProduct: "whatsapp",
-			To:               waID,
-			RecipientType:    "individual",
-			Type:             "template",
+			XID:  fmt.Sprintf("ambpi-%d", time.Now().UnixMilli()),
+			To:   waID,
+			Type: "template",
 			Template: api.CproTemplate{
 				Name: templateName,
 				Language: api.CproLanguage{
@@ -339,10 +338,11 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 		return nil, 0, fmt.Errorf("[usecase.ChatToUser] unsupported type: %s", types)
 	}
 
-	accessToken, err := self.getAccessToken(context.Background())
-	if err != nil {
-		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] getAccessToken")
-	}
+	accessToken := self.AccessTokenPush
+	// accessToken, err := self.getAccessToken(context.Background())
+	// if err != nil {
+	// 	return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] getAccessToken")
+	// }
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))

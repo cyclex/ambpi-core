@@ -34,11 +34,10 @@ type CproTemplate struct {
 }
 
 type CproPayloadPush struct {
-	MessagingProduct string       `json:"messaging_product"`
-	To               string       `json:"to"`
-	RecipientType    string       `json:"recipient_type"`
-	Type             string       `json:"type"`
-	Template         CproTemplate `json:"template"`
+	XID      string       `json:"xid"`
+	To       string       `json:"to"`
+	Type     string       `json:"type"`
+	Template CproTemplate `json:"template"`
 }
 
 type RefreshResponse struct {
