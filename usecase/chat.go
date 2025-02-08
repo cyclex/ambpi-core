@@ -91,6 +91,8 @@ func (self *chatUcase) IncomingMessages(payload api.CproMessage) (trxChatBotID s
 		return
 	}
 
+	fmt.Printf("%s", res)
+
 	clog := model.ConversationsLog{
 		SessionID: sessID,
 		Incoming:  payload.Text.Body,
