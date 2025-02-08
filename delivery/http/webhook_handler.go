@@ -1,6 +1,8 @@
 package http
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -35,7 +37,7 @@ func NewOrderHandler(e *echo.Echo, chatUcase domain.ChatUcase, debug bool) {
 	e.GET("/v1/webhooks/whatsapp", handler.health)
 }
 
-func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
+func (self *OrderHandler) webhooksWhatsappBak(c echo.Context) (err error) {
 
 	var (
 		request api.CproWebhookPayload
@@ -54,6 +56,66 @@ func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	err = c.Bind(&request)
 	if err != nil {
 		err = errors.Wrap(err, "[webhooksWhatsapp] Bind")
+		appLog.Error(err)
+		return
+	}
+
+	var inbound api.CproMessage
+	if len(request.Entry) > 0 {
+		inbound = request.Entry[0].Changes[0].Value.Messages[0]
+	} else {
+		err = errors.New("[webhooksWhatsapp] invalid request")
+		appLog.Error(err)
+		return
+	}
+
+	code = 200
+	_, err = self.Ch.IncomingMessages(inbound)
+	if err != nil {
+		err = errors.Wrap(err, "[webhooksWhatsapp] IncomingMessages")
+		appLog.Error(err)
+	}
+
+	return
+}
+
+func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
+	var (
+		request api.CproWebhookPayload
+		code    = 400
+	)
+
+	defer func(code *int) {
+		res := api.ResponseChatbot{
+			Code:       *code,
+			Message:    http.StatusText(*code),
+			ServerTime: time.Now().Local().Unix(),
+		}
+		c.JSON(*code, res)
+	}(&code)
+
+	// Read raw body
+	body, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		err = errors.Wrap(err, "[webhooksWhatsapp] Failed to read request")
+		appLog.Error(err)
+		return
+	}
+
+	// Log raw body to file
+	appLog.Debug(string(body))
+
+	// Check if request body is empty
+	if len(body) == 0 {
+		err = errors.Wrap(err, "[webhooksWhatsapp] Received empty request body")
+		appLog.Error(err)
+		return
+	}
+
+	// Try parsing JSON
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		err = errors.Wrap(err, "[webhooksWhatsapp] Failed to parse JSON")
 		appLog.Error(err)
 		return
 	}
