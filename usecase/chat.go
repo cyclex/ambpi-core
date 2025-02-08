@@ -364,6 +364,9 @@ func (self *chatUcase) ChatToUser(waID string, chats []string, types, templateNa
 		return nil, 0, pkg.WrapError(err, "[usecase.ChatToUser] ReadAll")
 	}
 
+	fmt.Println(AuthBearer + accessToken)
+	fmt.Printf("%s\n", payloadBytes)
+	fmt.Println(url)
 	return res, resp.StatusCode, nil
 }
 
