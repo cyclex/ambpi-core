@@ -40,7 +40,7 @@ func NewOrderHandler(e *echo.Echo, chatUcase domain.ChatUcase, debug bool) {
 func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
 	var (
 		request api.CproPayload
-		code    = 400
+		code    = 200
 	)
 
 	defer func(code *int) {

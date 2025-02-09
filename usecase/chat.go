@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ type chatUcase struct {
 	AccountID       string
 	DivisionID      string
 	AccessTokenPush string
+	DownloadPath    string
 }
 
 var (
@@ -56,7 +58,7 @@ var (
 	systemError = "System error"
 )
 
-func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, accessTokenPush string, queueRepo repository.QueueRepository, rdb *redis.Client) domain.ChatUcase {
+func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, accessTokenPush, downloadPath string, queueRepo repository.QueueRepository, rdb *redis.Client) domain.ChatUcase {
 
 	return &chatUcase{
 		m:               m,
@@ -69,6 +71,7 @@ func NewChatUcase(m repository.ModelRepository, urlPush, urlSendMsg, phoneID, ac
 		AccountID:       accountID,
 		DivisionID:      divisionID,
 		AccessTokenPush: accessTokenPush,
+		DownloadPath:    downloadPath,
 	}
 }
 
@@ -173,6 +176,7 @@ func (self *chatUcase) ReplyMessages(waID string, payload api.CproMessage) (isRe
 		Raw:           incoming,
 		NIK:           str[2],
 		County:        str[3],
+		MediaID:       payload.Image.ID,
 	}
 
 	err = self.q.CreateQueueRedeem(model.QueueRedeem{
@@ -268,7 +272,7 @@ func (self *chatUcase) setAndCreate(p model.Prizes, u model.UsersUniqueCode) (ou
 func (self *chatUcase) ChatToUserCoster(waID, chat, types, media string) (res []byte, statusCode int, err error) {
 
 	var payload interface{}
-	url := self.urlSendMsg
+	url := fmt.Sprintf("%s/bot/webhook", self.urlSendMsg)
 
 	payload = api.ReqSendMessageText{
 		XID:         uuid.NewString(),
@@ -466,4 +470,43 @@ func (self *chatUcase) GetToken(ctx context.Context) (token string, err error) {
 	}
 
 	return
+}
+
+func (self *chatUcase) DownloadMedia(ctx context.Context, id string) (files string, err error) {
+
+	url := fmt.Sprintf("%s/bot/media/%s", self.urlSendMsg, id)
+	resp, statusCode, err := httprequest.SendGetRequest(url, nil, 15*time.Second, self.AccessToken)
+	if err != nil {
+		err = errors.Wrapf(err, "[usecase.DownloadMedia] SendGetRequest failed with status %d", statusCode)
+		return
+	}
+	defer resp.Body.Close() // Close body here after use
+
+	// Get the file extension from Content-Type header
+	contentType := resp.Header.Get("Content-Type")
+	ext := pkg.GetFileExtension(contentType)
+	if ext == "" {
+		ext = ".bin" // Default extension if unknown
+	}
+
+	// Generate random filename
+	files = id + ext
+	filename := fmt.Sprintf("%s/media/%s", self.DownloadPath, files)
+
+	// Create a file to save the response content
+	file, err := os.Create(filename)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.DownloadMedia] Error creating file")
+		return
+	}
+	defer file.Close()
+
+	// Write the response body to the file
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		err = errors.Wrap(err, "[usecase.DownloadMedia] Error saving file")
+		return
+	}
+
+	return files, nil
 }

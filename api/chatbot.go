@@ -75,6 +75,7 @@ type PayloadRedeem struct {
 	Raw           string `json:"raw"`
 	NIK           string `json:"nik"`
 	County        string `json:"county"`
+	MediaID       string `json:"mediaID"`
 }
 
 type PayloadReply struct {

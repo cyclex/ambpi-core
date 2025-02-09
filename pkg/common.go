@@ -321,3 +321,21 @@ func GetFilename(path string) string {
 	parts := strings.Split(path, "/")
 	return parts[len(parts)-1]
 }
+
+// getFileExtension maps MIME types to file extensions
+func GetFileExtension(contentType string) string {
+	mimeExtensions := map[string]string{
+		"image/jpeg":      ".jpg",
+		"image/png":       ".png",
+		"image/gif":       ".gif",
+		"video/mp4":       ".mp4",
+		"audio/mpeg":      ".mp3",
+		"application/pdf": ".pdf",
+	}
+
+	// Return the mapped extension or an empty string if unknown
+	if ext, found := mimeExtensions[contentType]; found {
+		return ext
+	}
+	return ""
+}

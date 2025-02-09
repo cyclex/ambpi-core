@@ -11,7 +11,7 @@
     "name": "ambpi"
   },
   "chatbot": {
-    "host": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io/bot/webhook",
+    "host": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io",
     "host_push": "https://869de8ac-2cac-44eb-ab04-fb7ff83cb000.mock.pstmn.io",
     "phone_id":"6282122912548",
     "account_id": "xxx",

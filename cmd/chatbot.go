@@ -36,6 +36,13 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 			return
 		}
 
+		files, err := chatUcase.DownloadMedia(ctx, row.Messages.MediaID)
+		if err != nil {
+			err = errors.Wrap(err, fmt.Sprintf("[cron.Redeem] DownloadMedia. id:%v", row.ID))
+			winLog.Error(err)
+			return
+		}
+
 		uCode := model.UsersUniqueCode{
 			WaID:          row.Messages.WaID,
 			Name:          row.Messages.Name,
@@ -45,6 +52,7 @@ func Redeem(processing *bool, chatUcase domain.ChatUcase, orderUcase domain.Orde
 			Raw:           row.Messages.Raw,
 			NIK:           row.Messages.NIK,
 			County:        row.Messages.County,
+			Receipt:       files,
 		}
 
 		chat, err := chatUcase.DoRedeem(uCode)

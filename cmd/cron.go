@@ -24,23 +24,17 @@ func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcas
 
 	cr := cron.New()
 
-	cr.AddFunc("@every 5s", func() {
+	cr.AddFunc("@every 1s", func() {
 		if !processingRedeem {
 			Redeem(&processingRedeem, chatUcase, orderUcase, c, debug)
 		}
 	})
 
-	cr.AddFunc("@every 5s", func() {
+	cr.AddFunc("@every 1s", func() {
 		if !processingSendReply {
 			DoSendReply(&processingSendReply, chatUcase, orderUcase, c)
 		}
 	})
-
-	// cr.AddFunc("* * * * *", func() {
-	// 	if !processingRefresh {
-	// 		RefreshToken(&processingRefresh, chatUcase)
-	// 	}
-	// })
 
 	cr.AddFunc("* * * * *", func() {
 		if !processingJob {

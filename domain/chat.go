@@ -19,6 +19,7 @@ type ChatUcase interface {
 	RefreshToken() (res api.RefreshResponse, statusCode int, err error)
 	SetToken(ctx context.Context, token string, ttl time.Duration) (err error)
 	GetToken(ctx context.Context) (token string, err error)
+	DownloadMedia(ctx context.Context, id string) (files string, err error)
 }
 
 // type ChatUcaseV1 interface {

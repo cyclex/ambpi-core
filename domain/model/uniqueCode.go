@@ -14,6 +14,7 @@ type UsersUniqueCode struct {
 	IsZonk        bool   `gorm:"is_zonk" json:"isZonk"`
 	Reply         string `gorm:"reply" json:"reply"`
 	County        string `gorm:"county" json:"county"`
+	Receipt       string `gorm:"receipt" json:"receipt"`
 }
 
 type Prizes struct {

@@ -3,7 +3,7 @@ INSERT INTO user_cms (id, created_at, updated_at, deleted_at, username, password
 
 INSERT INTO programs (id, created_at, updated_at, deleted_at, retail, status, start_date, end_date) VALUES (1, '2024-06-01 22:17:26.955000 +00:00', '2024-06-15 15:08:35.760384 +00:00', null, 'am', true, 1718470800, 1722445199);
 
-create type prize as enum ('gopay 25rb', 'abb', 'helm', 'jacket');
+create type prize as enum ('gopay 25rb', 'abb', 'helm', 'jacket', 'gopay 50rb', 'gopay 100rb', 'handphone', 'smart tv', 'motor');
 alter table public.prizes alter column prize type prize using prize::prize;
 
 create type prize_type as enum ('reguler', 'zonk');
