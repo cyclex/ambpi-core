@@ -510,5 +510,5 @@ func (self *chatUcase) DownloadMedia(ctx context.Context, id string) (files stri
 }
 
 func (self *chatUcase) PathMedia(ctx context.Context) (path string) {
-	return fmt.Sprintf("%s/media", self.DownloadPath)
+	return fmt.Sprintf("%s", self.DownloadPath)
 }
