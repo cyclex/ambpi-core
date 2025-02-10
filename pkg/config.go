@@ -30,14 +30,13 @@ type Queue struct {
 }
 
 type Chatbot struct {
-	Host              string `json:"host"`
-	HostPush          string `json:"host_push"`
-	PhoneID           string `json:"phone_id"`
-	AccessToken       string `json:"access_token"`
-	WabaAccountNumber string `json:"waba_account_number"`
-	AccessTokenPush   string `json:"access_token_push"`
-	DivisionID        string `json:"division_id"`
-	AccountID         string `json:"account_id"`
+	Host            string `json:"host"`
+	HostPush        string `json:"host_push"`
+	PhoneID         string `json:"phone_id"`
+	AccessToken     string `json:"access_token"`
+	AccessTokenPush string `json:"access_token_push"`
+	DivisionID      string `json:"division_id"`
+	AccountID       string `json:"account_id"`
 }
 
 type Service struct {
