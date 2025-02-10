@@ -489,7 +489,7 @@ func (self *chatUcase) DownloadMedia(ctx context.Context, id string) (files stri
 
 	// Generate random filename
 	files = id + ext
-	filename := fmt.Sprintf("%s/media/%s", self.DownloadPath, files)
+	filename := fmt.Sprintf("%s/%s", self.DownloadPath, files)
 
 	// Create a file to save the response content
 	file, err := os.Create(filename)
