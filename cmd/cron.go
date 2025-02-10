@@ -25,12 +25,6 @@ func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcas
 	cr := cron.New()
 
 	cr.AddFunc("@every 1s", func() {
-		if !processingRedeem {
-			Redeem(&processingRedeem, chatUcase, orderUcase, c, debug)
-		}
-	})
-
-	cr.AddFunc("@every 1s", func() {
 		if !processingSendReply {
 			DoSendReply(&processingSendReply, chatUcase, orderUcase, c)
 		}
@@ -39,6 +33,26 @@ func InitCron(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, cmsUcas
 	cr.AddFunc("* * * * *", func() {
 		if !processingJob {
 			ProcessJobUpload(&processingJob, orderUcase, cmsUcase, c, debug)
+		}
+	})
+
+	cr.Start()
+
+}
+
+func InitCronWebhook(orderUcase domain.OrdersUcase, chatUcase domain.ChatUcase, timeout time.Duration, debug bool) {
+
+	c := context.Background()
+	_, cancel := context.WithTimeout(c, timeout)
+	defer cancel()
+
+	winLog = pkg.New("winners", debug)
+
+	cr := cron.New()
+
+	cr.AddFunc("@every 1s", func() {
+		if !processingRedeem {
+			Redeem(&processingRedeem, chatUcase, orderUcase, c, debug)
 		}
 	})
 

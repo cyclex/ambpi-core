@@ -215,6 +215,7 @@ func run_webhook(server, config string, debug bool) (err error) {
 		DB:       0,                // Use default DB
 	})
 
+	timeoutCtx := time.Duration(30) * time.Second
 	expired := cfg.Queue.Expired
 	if expired < 1 {
 		expired = 24
@@ -233,7 +234,9 @@ func run_webhook(server, config string, debug bool) (err error) {
 	model := postgre.NewPostgreRepository(c, conn)
 	ordersQueue := mongo.NewmongoRepository(c, queue.Database(queueName), "chatbot", expiredQueue)
 	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, accessTokenPush, downloadFolder, ordersQueue, rdb)
+	orderUcase := usecase.NewOrdersUcase(ordersQueue, timeoutCtx)
 
+	InitCronWebhook(orderUcase, chatUcase, timeoutCtx, debug)
 	e := echo.New()
 	_HttpDelivery.NewOrderHandler(e, chatUcase, debug)
 
