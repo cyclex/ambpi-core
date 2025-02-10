@@ -20,6 +20,7 @@ type ChatUcase interface {
 	SetToken(ctx context.Context, token string, ttl time.Duration) (err error)
 	GetToken(ctx context.Context) (token string, err error)
 	DownloadMedia(ctx context.Context, id string) (files string, err error)
+	PathMedia(ctx context.Context) (path string)
 }
 
 // type ChatUcaseV1 interface {

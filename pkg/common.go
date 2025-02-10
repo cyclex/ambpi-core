@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -338,4 +339,19 @@ func GetFileExtension(contentType string) string {
 		return ext
 	}
 	return ""
+}
+
+// getContentType determines the correct content type for the image
+func GetContentType(filePath string) string {
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	default:
+		return "application/octet-stream"
+	}
 }

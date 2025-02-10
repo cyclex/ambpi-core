@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -35,6 +36,7 @@ func NewOrderHandler(e *echo.Echo, chatUcase domain.ChatUcase, debug bool) {
 
 	e.POST("/v1/webhooks/whatsapp", handler.webhooksWhatsapp)
 	e.GET("/v1/webhooks/whatsapp", handler.health)
+	e.GET("/v1/media/:id", handler.Media)
 }
 
 func (self *OrderHandler) webhooksWhatsapp(c echo.Context) (err error) {
@@ -130,4 +132,18 @@ func (self *OrderHandler) health(c echo.Context) (err error) {
 	c.JSON(200, res)
 
 	return
+}
+
+func (self *OrderHandler) Media(c echo.Context) (err error) {
+
+	var ctx = c.Request().Context()
+
+	imagePath := fmt.Sprintf("%s/%s", self.Ch.PathMedia(ctx), c.Param("id"))
+
+	// Get the correct content type based on the file extension
+	contentType := pkg.GetContentType(imagePath)
+	c.Response().Header().Set("Content-Type", contentType)
+
+	return c.File(imagePath)
+
 }

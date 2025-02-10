@@ -510,3 +510,7 @@ func (self *chatUcase) DownloadMedia(ctx context.Context, id string) (files stri
 
 	return files, nil
 }
+
+func (self *chatUcase) PathMedia(ctx context.Context) (path string) {
+	return fmt.Sprintf("%s/media", self.DownloadPath)
+}
