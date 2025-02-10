@@ -255,6 +255,7 @@ func (self *postgreRepo) FindRedeemID(id string) (data map[string]interface{}, e
 		DateValidation string `json:"dateValidation"`
 		Approved       string `json:"approved"`
 		RedeemID       string `json:"redeem_id"`
+		Receipt        string `json:"receipt"`
 	}
 
 	var (
@@ -286,6 +287,7 @@ func (self *postgreRepo) FindRedeemID(id string) (data map[string]interface{}, e
 		"amount":         res.Amount,
 		"lotteryNumber":  res.LotteryNumber,
 		"id":             res.RedeemID,
+		"receipt":        res.Receipt,
 	}
 
 	return

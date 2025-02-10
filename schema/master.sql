@@ -13,7 +13,7 @@ create type level_type as enum ('admin', 'report');
 alter table public.user_cms alter column level type level_type using level::level_type;
 
 create view detailed_prize_redemptions
-            (prize, name, nik, msisdn, date_redeem,is_zonk, redeem_id, county, profession, date_validation, approved, lottery_number, amount)
+            (prize, name, nik, msisdn, date_redeem,is_zonk, redeem_id, county, profession, date_validation, approved, lottery_number, amount, notes, receipt)
 as
 SELECT p.prize,
        u.name,
@@ -28,7 +28,8 @@ SELECT p.prize,
        redeem_prizes.approved,
        redeem_prizes.lottery_number,
        redeem_prizes.amount,
-       redeem_prizes.notes
+       redeem_prizes.notes,
+       u.receipt AS receipt
 FROM redeem_prizes
          JOIN prizes p ON redeem_prizes.prize_id = p.id
          JOIN users_unique_codes u ON redeem_prizes.users_unique_code_id = u.id
