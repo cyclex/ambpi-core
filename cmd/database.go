@@ -27,7 +27,7 @@ func ConnectDB(driver, dsn string, debug bool) (*gorm.DB, error) {
 	db.AutoMigrate(
 		&model.ConversationsLog{},
 		&model.UsersUniqueCode{}, &model.Prizes{}, &model.RedeemPrizes{},
-		&model.Token{}, &model.UserCMS{}, &model.Program{},
+		&model.UserCMS{}, &model.Program{},
 	)
 
 	return db, nil
