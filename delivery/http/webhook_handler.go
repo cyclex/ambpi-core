@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/cyclex/ambpi-core/api"
@@ -134,16 +135,23 @@ func (self *OrderHandler) health(c echo.Context) (err error) {
 	return
 }
 
-func (self *OrderHandler) Media(c echo.Context) (err error) {
+func (self *OrderHandler) Media(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	var ctx = c.Request().Context()
+	// Construct the file path safely
+	imagePath := fmt.Sprintf("%s/%s", self.Ch.PathMedia(ctx), filepath.Base(c.Param("id")))
 
-	imagePath := fmt.Sprintf("%s/%s", self.Ch.PathMedia(ctx), c.Param("id"))
-
-	// Get the correct content type based on the file extension
+	// Determine content type
 	contentType := pkg.GetContentType(imagePath)
 	c.Response().Header().Set("Content-Type", contentType)
 
-	return c.File(imagePath)
+	// Serve the file
+	if err := c.File(imagePath); err != nil {
+		return c.JSON(http.StatusNotFound, api.ResponseError{
+			Status:  false,
+			Message: err.Error(),
+		})
+	}
 
+	return nil
 }

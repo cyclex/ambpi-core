@@ -290,7 +290,7 @@ func (self *CmsHandler) createUser(c echo.Context) error {
 		cmsLog.Error(err)
 		res = api.ResponseError{
 			Status:  false,
-			Message: err.Error(),
+			Message: "Invalid account",
 		}
 
 	} else {

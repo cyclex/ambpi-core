@@ -79,6 +79,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 		DateRedeem     string `json:"dateRedeem"`
 		Amount         string `json:"amount"`
 		Notes          string `json:"notes"`
+		Receipt        string `json:"receipt"`
 	}
 
 	var (
@@ -103,7 +104,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 	if req.Limit > 0 {
 		q = q.Limit(req.Limit)
 	}
-	err = q.Order("date_validation desc").Offset(req.Offset).Find(&res).Error
+	err = q.Order("sequence_number desc").Offset(req.Offset).Find(&res).Error
 	if err != nil {
 		return
 	}
@@ -124,6 +125,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 			"dateRedeem":       v.DateRedeem,
 			"amount":           v.Amount,
 			"notes":            v.Notes,
+			"receipt":          v.Receipt,
 		}
 
 		datas = append(datas, x)
