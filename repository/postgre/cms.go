@@ -125,7 +125,7 @@ func (self *postgreRepo) ReportHistoryValidation(req api.Report) (data map[strin
 			"dateRedeem":       v.DateRedeem,
 			"amount":           v.Amount,
 			"notes":            v.Notes,
-			"receipt":          v.Receipt,
+			"receipt":          fmt.Sprintf("%s/%s", self.UrlMedia, v.Receipt),
 		}
 
 		datas = append(datas, x)

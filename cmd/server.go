@@ -109,7 +109,8 @@ func run_server(server, config string, debug bool) (err error) {
 	accountID := cfg.Chatbot.AccountID
 	divisionID := cfg.Chatbot.DivisionID
 	accessTokenPush := cfg.Chatbot.AccessTokenPush
-	model := postgre.NewPostgreRepository(c, conn)
+	urlMedia := cfg.UrlMedia
+	model := postgre.NewPostgreRepository(c, conn, urlMedia)
 	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, accessTokenPush, downloadFolder, ordersQueue, rdb)
 	cmsUcase := usecase.NewCmsUcase(model, timeoutCtx, chatUcase, ordersQueue, downloadFolder)
 	orderUcase := usecase.NewOrdersUcase(ordersQueue, timeoutCtx)
@@ -230,8 +231,9 @@ func run_webhook(server, config string, debug bool) (err error) {
 	divisionID := cfg.Chatbot.DivisionID
 	accessTokenPush := cfg.Chatbot.AccessTokenPush
 	downloadFolder := cfg.DownloadFolder
+	urlMedia := cfg.UrlMedia
 
-	model := postgre.NewPostgreRepository(c, conn)
+	model := postgre.NewPostgreRepository(c, conn, urlMedia)
 	ordersQueue := mongo.NewmongoRepository(c, queue.Database(queueName), "chatbot", expiredQueue)
 	chatUcase := usecase.NewChatUcase(model, urlPush, urlSendMsg, phoneID, accessToken, accountID, divisionID, accessTokenPush, downloadFolder, ordersQueue, rdb)
 	orderUcase := usecase.NewOrdersUcase(ordersQueue, timeoutCtx)

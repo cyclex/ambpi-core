@@ -45,6 +45,7 @@ type Service struct {
 	Queue          Queue    `json:"queue"`
 	Chatbot        Chatbot  `json:"chatbot"`
 	DownloadFolder string   `json:"download_folder"`
+	UrlMedia       string   `json:"url_media"`
 }
 
 func LoadServiceConfig(configFilePath string) (cfg *Service, err error) {

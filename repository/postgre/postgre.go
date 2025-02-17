@@ -8,14 +8,16 @@ import (
 )
 
 type postgreRepo struct {
-	DB      *gorm.DB
-	c       context.Context
-	UrlHost string
+	DB       *gorm.DB
+	c        context.Context
+	UrlHost  string
+	UrlMedia string
 }
 
-func NewPostgreRepository(c context.Context, db *gorm.DB) repository.ModelRepository {
+func NewPostgreRepository(c context.Context, db *gorm.DB, urlMedia string) repository.ModelRepository {
 	return &postgreRepo{
-		DB: db,
-		c:  c,
+		DB:       db,
+		c:        c,
+		UrlMedia: urlMedia,
 	}
 }

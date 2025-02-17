@@ -26,5 +26,6 @@
     "name" : "ambpi",
     "expired" : 100
   },
-  "download_folder":"/Users/ansharharyadi/Desktop"
+  "download_folder":"/Users/ansharharyadi/Desktop",
+  "url_media":"https://ambpicms.coster.id/v1/media"
 }
